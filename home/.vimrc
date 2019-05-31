@@ -40,6 +40,7 @@ Plug 'hashivim/vim-terraform'
 Plug 'vim-jp/vim-go-extra'
 
 Plug 'ConradIrwin/vim-bracketed-paste'
+Plug 'ntpeters/vim-better-whitespace'
 call plug#end()
 
 let g:lightline = {
