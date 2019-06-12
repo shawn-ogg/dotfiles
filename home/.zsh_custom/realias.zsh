@@ -10,18 +10,27 @@ alias dev-tmux="tmux new-session -A -s dev"
 #bookmarks
 
 goeff() {
-    dillo -f "https://golang.org/doc/effective_go.html" >/dev/null 2>&1 &
+    surf "https://golang.org/doc/effective_go.html" >/dev/null 2>&1 &
 }
 godoc() {
-    dillo -f "https://golang.org/doc/" >/dev/null 2>&1 &
+    surf "https://golang.org/doc/" >/dev/null 2>&1 &
 }
 gomod() {
-    dillo -f "https://golang.org/ref/spec" >/dev/null 2>&1 &
+    surf "https://golang.org/ref/spec" >/dev/null 2>&1 &
 }
 gomod() {
-    dillo -f "https://godoc.org/?q=$1" >/dev/null 2>&1 &
+    surf "https://godoc.org/?q=$1" >/dev/null 2>&1 &
 }
 
 rmd() {
     pandoc $1 | w3m -T text/html
 }
+
+pydocs() {
+    if [ -z "$1" ]; then
+        surf "https://docs.python.org/3/?q=$1" >/dev/null 2>&1 &
+    else
+        surf "https://docs.python.org/3/search.html?q=$1" >/dev/null 2>&1 &
+    fi
+}
+

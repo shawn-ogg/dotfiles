@@ -23,6 +23,7 @@ Plug 'tpope/vim-eunuch'
 Plug 'tpope/vim-sleuth'
 
 Plug 'itchyny/lightline.vim'
+Plug 'kmtoki/lightline-colorscheme-simplicity'
 
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
@@ -45,6 +46,7 @@ Plug 'ntpeters/vim-better-whitespace'
 call plug#end()
 
 let g:lightline = {
+      \ 'colorscheme': 'simplicity',
       \ 'active': {
       \   'left': [ [ 'mode', 'paste' ],
       \             [ 'gitbranch', 'readonly', 'filename', 'modified' ] ]
@@ -71,6 +73,7 @@ nnoremap <C-K> <C-W><C-K>
 nnoremap <C-L> <C-W><C-L>
 nnoremap <C-H> <C-W><C-H>
 
+set noshowmode
 set splitbelow
 set splitright
 
