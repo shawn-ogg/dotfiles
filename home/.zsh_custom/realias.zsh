@@ -23,7 +23,11 @@ gomod() {
 }
 
 rmd() {
-    pandoc $1 | w3m -T text/html
+    if [ -z "$1" ]; then
+        pandoc | w3m -T text/html
+    else
+        pandoc $1 | w3m -T text/html
+    fi
 }
 
 pydocs() {
@@ -32,5 +36,10 @@ pydocs() {
     else
         surf "https://docs.python.org/3/search.html?q=$1" >/dev/null 2>&1 &
     fi
+}
+
+tmuxcs() {
+    url="https://gist.githubusercontent.com/andreyvit/2921703/raw/426c2adf4e4077d89c76519410f9ce13c53c6c26/tmux.md"
+    curl -fLs "$url" | rmd
 }
 
