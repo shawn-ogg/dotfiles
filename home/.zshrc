@@ -105,6 +105,7 @@ export LANG=en_US.UTF-8
 
 # Preferred editor for local and remote sessions
 if [[ -n $SSH_CONNECTION ]]; then
+  export DISPLAY=192.168.78.1:0.0
   export EDITOR='vim'
   export VISUAL='vim'
 else

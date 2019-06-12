@@ -11,7 +11,7 @@ if empty(glob('~/.vim/autoload/plug.vim'))
 endif
 
 call plug#begin('~/.vim/plugged')
-Plug 'altercation/vim-colors-solarized'
+Plug 'jeffkreeftmeijer/vim-dim'
 
 Plug 'christoomey/vim-tmux-navigator'
 
@@ -20,10 +20,12 @@ Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-eunuch'
+Plug 'tpope/vim-sleuth'
 
 Plug 'itchyny/lightline.vim'
 
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'junegunn/fzf.vim'
 
 Plug 'mhinz/vim-signify'
 Plug 'AndrewRadev/linediff.vim'
@@ -31,7 +33,6 @@ Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
 
 Plug 'editorconfig/editorconfig-vim'
 Plug 'vim-syntastic/syntastic'
-
 "Plug 'devjoe/vim-codequery'
 
 Plug 'Vimjas/vim-python-pep8-indent'
@@ -44,7 +45,6 @@ Plug 'ntpeters/vim-better-whitespace'
 call plug#end()
 
 let g:lightline = {
-      \ 'colorscheme': 'solarized',
       \ 'active': {
       \   'left': [ [ 'mode', 'paste' ],
       \             [ 'gitbranch', 'readonly', 'filename', 'modified' ] ]
@@ -54,16 +54,7 @@ let g:lightline = {
       \ },
       \ }
 
-set t_Co=256
-set background=dark
-let g:solarized_termtrans = 1
-colorscheme solarized
-
-
-
-set statusline+=%#warningmsg#
-set statusline+=%{SyntasticStatuslineFlag()}
-set statusline+=%*
+silent! colorscheme dim
 
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
@@ -71,7 +62,6 @@ let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
 let g:syntastic_aggregate_errors = 1
 let g:syntastic_go_checkers = ['golint', 'govet']
-
 
 map ; :Files<CR>
 map <C-n> :NERDTreeToggle<CR>
