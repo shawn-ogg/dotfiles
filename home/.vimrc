@@ -1,4 +1,5 @@
 set nocompatible              " be iMproved, required
+set hlsearch
 if executable('goimports')
     let g:gofmt_command = "goimports"
 endif
@@ -22,6 +23,8 @@ Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-eunuch'
 Plug 'tpope/vim-sleuth'
 
+Plug 'haya14busa/incsearch.vim'
+
 Plug 'itchyny/lightline.vim'
 Plug 'kmtoki/lightline-colorscheme-simplicity'
 
@@ -43,6 +46,8 @@ Plug 'vim-jp/vim-go-extra'
 
 Plug 'ConradIrwin/vim-bracketed-paste'
 Plug 'ntpeters/vim-better-whitespace'
+
+Plug 'shawn-ogg/bash-git-prompt', { 'dir': '~/.bash-git-prompt', 'do': './install.sh' }
 call plug#end()
 
 let g:lightline = {
@@ -64,6 +69,17 @@ let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
 let g:syntastic_aggregate_errors = 1
 let g:syntastic_go_checkers = ['golint', 'govet']
+
+let g:incsearch#auto_nohlsearch = 1
+map /  <Plug>(incsearch-forward)
+map ?  <Plug>(incsearch-backward)
+map g/ <Plug>(incsearch-stay)
+map n  <Plug>(incsearch-nohl-n)
+map N  <Plug>(incsearch-nohl-N)
+map *  <Plug>(incsearch-nohl-*)
+map #  <Plug>(incsearch-nohl-#)
+map g* <Plug>(incsearch-nohl-g*)
+map g# <Plug>(incsearch-nohl-g#)
 
 map ; :Files<CR>
 map <C-n> :NERDTreeToggle<CR>
