@@ -117,3 +117,11 @@ endfunction
 
 nnoremap <silent> <leader>m :FZFMru<CR>
 
+function! s:install_YCM()
+  call plug#begin('~/.vim/plugged')
+  Plug 'Valloric/YouCompleteMe', { 'do': './install.py' }
+  call plug#end()
+  PlugInstall --sync
+endfunction
+
+command! InstallYCM call s:install_YCM()
