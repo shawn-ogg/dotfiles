@@ -47,7 +47,8 @@ Plug 'vim-jp/vim-go-extra'
 Plug 'ConradIrwin/vim-bracketed-paste'
 Plug 'ntpeters/vim-better-whitespace'
 
-Plug 'shawn-ogg/bash-git-prompt', { 'dir': '~/.bash-git-prompt', 'do': './install.sh' }
+Plug 'mtth/scratch.vim'
+
 call plug#end()
 
 let g:lightline = {
@@ -116,6 +117,7 @@ function! s:all_files()
 endfunction
 
 nnoremap <silent> <leader>m :FZFMru<CR>
+nnoremap <silent> <leader>s :Scratch<CR>
 
 function! s:install_YCM()
   call plug#begin('~/.vim/plugged')
@@ -124,4 +126,12 @@ function! s:install_YCM()
   PlugInstall --sync
 endfunction
 
+function! s:install_bash_prompt()
+  call plug#begin('~/.vim/plugged')
+  Plug 'shawn-ogg/bash-git-prompt', { 'dir': '~/.bash-git-prompt', 'do': './install.sh' }
+  call plug#end()
+  PlugInstall --sync
+endfunction
+
 command! InstallYCM call s:install_YCM()
+command! InstallBashPrompt call s:install_bash_prompt()

@@ -31,3 +31,4 @@ eval "$(dircolors ~/.dir_colors)"
 PATH="$HOME/.cargo/bin:$PATH"
 export PATH="$PATH:$HOME/go/bin"
 
+pgrep sxhkd >/dev/null || sxhkd &
