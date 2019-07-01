@@ -34,6 +34,8 @@ Plug 'junegunn/fzf.vim'
 Plug 'mhinz/vim-signify'
 Plug 'AndrewRadev/linediff.vim'
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
+Plug 'severin-lemaignan/vim-minimap', { 'on': 'MinimapToggle' }
+
 
 Plug 'editorconfig/editorconfig-vim'
 Plug 'vim-syntastic/syntastic'
@@ -84,6 +86,7 @@ map g# <Plug>(incsearch-nohl-g#)
 
 map ; :Files<CR>
 map <C-n> :NERDTreeToggle<CR>
+map <C-m> :MinimapToggle<CR>
 
 nnoremap <C-J> <C-W><C-J>
 nnoremap <C-K> <C-W><C-K>
