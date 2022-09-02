@@ -1,0 +1,15 @@
+#!/bin/bash
+
+
+l=$1
+b=$2
+h=$3
+
+
+echo "length $l"
+echo "widht $b"
+echo "height $h"
+
+echo -n "Rollenmass: "
+expr $l + 2 \* \( $b + $h \)
+

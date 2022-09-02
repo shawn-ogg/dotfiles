@@ -1,0 +1,38 @@
+#!/bin/bash
+
+#HEADPHONE=1
+#SPEAKER=4
+
+#XDG_CONFIG_HOME=${XDG_CONFIG_HOME:$HOME/.config}
+
+#mkdir -p "$XDG_CONFIG_HOME/aswitch/"
+
+#current sink
+CUR_SINK=$(pacmd list-sinks | awk '/* index:/{print $3}')
+NUM_SINK=$(pacmd list-sinks | head -1 | awk '{print $1}')
+SINKS_ARR=($(pacmd list-sinks | awk '/ index:/{print $NF}'))
+
+for ((idx=0; idx<${#SINKS_ARR[@]}; ++idx)); do
+	if [[ $CUR_SINK == "${SINKS_ARR[$idx]}" ]]; then
+	    break
+	fi
+done
+
+NEW_IDX=$(( (idx + 1) % $NUM_SINK ))
+echo "$((idx + 1)) (of $NUM_SINK)"
+NEW_SINK=${SINKS_ARR[$NEW_IDX]}
+echo "current sink ${SINKS_ARR[$idx]}"
+
+echo "new sink $NEW_SINK"
+
+pacmd set-default-sink $NEW_SINK && pacmd list-sink-inputs|awk '/ +index: /{ print $2}'|xargs --replace="PLAYBACK" pacmd move-sink-input PLAYBACK $NEW_SINK
+
+#if [[ CUR_SINK -eq 1 ]]; then
+#       	pacmd set-default-sink 0 && pacmd list-sink-inputs|awk '/ +index: /{ print $2}'|xargs -n1 --replace="PLAYBACK" pacmd move-sink-input PLAYBACK 0
+#fi
+#
+#if [[ CUR_SINK -eq 0 ]]; then
+#       pacmd set-default-sink 1	&& pacmd list-sink-inputs|awk '/ +index: /{ print $2}'|xargs -n1 --replace="PLAYBACK" pacmd move-sink-input PLAYBACK 1
+#fi
+
+#exit 0

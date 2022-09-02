@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [[ $XDG_VTNR -eq 1 ]]; then
+	firefox -P game "$@"
+elif [[ $XDG_VTNR -eq 2 ]]; then
+	firefox -P work "$@"
+elif [[ $XDG_VTNR -eq 3 ]]; then
+	firefox -P hsbc "$@"
+else
+	firefox -P default "$@"
+fi

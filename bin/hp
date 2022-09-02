@@ -1,0 +1,16 @@
+#!/bin/bash
+
+unset=${1:-}
+shift
+
+address=($(vhuit64 -t 'GET CLIENT STATE' | yq -p=xml '.state.server.device[] | select(.+product == "HyperX Virtual Surround Sound") | .+serverName + "." + .+address + " " + .+clientId'))
+
+if [[ -n "${address[1]}" ]]; then
+	vhuit64 -t "stop using,${address}"
+
+	if [[ $unset == "unset" ]]; then
+		exit 0
+	fi
+fi
+
+vhuit64 -t "use,${address}"

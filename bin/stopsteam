@@ -1,0 +1,9 @@
+#!/bin/bash
+
+
+if [[ -e '/tmp/steam_pgid' ]]; then
+	PGID=$(</tmp/steam_pgid)
+	pkill -TERM -P $PGID
+	rm -f /tmp/steam_pgid
+fi
+

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+echo -e "IPv4: $(curl -s http://ipv4.whatismyip.akamai.com/)"
+echo -e "IPv6: $(curl -s http://ipv6.whatismyip.akamai.com/)"

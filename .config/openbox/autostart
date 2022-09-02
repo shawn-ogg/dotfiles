@@ -1,0 +1,15 @@
+stalonetray --dockapp-mode simple --icon-size=32 --kludges=force_icons_size &
+conky &
+trayclock &
+#(sleep 1; trayclock) &
+
+if [ "$XDG_VTNR" -eq 1 ]; then
+  wallpaper_dir=~/.wallpapers
+  (sleep 4; bitwarden-desktop) &
+elif [ "$XDG_VTNR" -eq 3 ]; then
+  wallpaper_dir=~/.wallpapers_work
+  (sleep 3; zoom) &
+  (sleep 4; 1password --silent) &
+fi
+
+watch -n 3600 feh --bg-fill --randomize "${wallpaper_dir}/*" &> /dev/null &

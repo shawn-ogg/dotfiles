@@ -1,0 +1,4 @@
+#!/bin/sh
+
+echo 11 >> /tmp/out3
+exec /usr/bin/alacritty ${XEMBED:+--embed="$XEMBED"}

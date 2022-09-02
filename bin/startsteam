@@ -1,0 +1,5 @@
+#!/bin/bash
+
+STEAM_FRAME_FORCE_CLOSE=1 steam -silent &
+echo $! > /tmp/steam_pgid
+
