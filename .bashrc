@@ -17,7 +17,11 @@ alias realias='vim ~/.aliases && . ~/.aliases'
 alias reload='. ~/.bashrc'
 alias config='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
 
+complete -F _complete_alias config
+
+
 #PS1='[\u@\h \W]\$ '
 
 #alacritty() { command alacritty ${XEMBED:+--embed="$XEMBED"}; }
+#password=TODO
 
