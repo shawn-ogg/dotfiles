@@ -1,0 +1,23 @@
+font:
+  bold:
+    family: xos4 Terminus
+    style: Bold
+  bold_italic:
+    family: xos4 Terminus
+    style: Bold Italic
+  italic:
+    family: xos4 Terminus
+    style: Italic
+  normal:
+    family: xos4 Terminus
+    style: Regular
+  size: 13
+
+key_bindings:
+  - { key: Return,   mods: Control|Shift, action: SpawnNewInstance }
+  - { key: N,   mods: Control|Shift, action: SpawnNewInstance }
+  - { key: F,   mods: Control,           action: SearchForward    }
+  - { key: V,   mods: Control,           action: Paste }
+
+selection:
+  save_to_clipboard: true

@@ -1,0 +1,15 @@
+[Default Applications]
+text/html=x-www-browser.desktop
+application/pdf=org.pwmt.zathura.desktop
+x-scheme-handler/discord-402572971681644545=discord-402572971681644545.desktop
+x-scheme-handler/mailto=x-www-browser.desktop
+x-scheme-handler/http=x-www-browser.desktop
+x-scheme-handler/https=x-www-browser.desktop
+x-scheme-handler/about=x-www-browser.desktop
+x-scheme-handler/unknown=x-www-browser.desktop
+
+[Added Associations]
+application/zip=x-www-browser.desktop;
+application/force-download=x-www-browser.desktop;
+application/epub+zip=org.pwmt.zathura-pdf-mupdf.desktop;
+application/pdf=x-www-browser.desktop;
