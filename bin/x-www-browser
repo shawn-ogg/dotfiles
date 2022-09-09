@@ -1,11 +1,11 @@
 #!/bin/bash
 
 if [[ $XDG_VTNR -eq 1 ]]; then
-	firefox -P game "$@"
+	firefox --new-tab -P game "$@"
 elif [[ $XDG_VTNR -eq 2 ]]; then
-	firefox -P work "$@"
+	firefox --new-tab -P work "$@"
 elif [[ $XDG_VTNR -eq 3 ]]; then
-	firefox -P hsbc "$@"
+	firefox --new-tab -P hsbc "$@"
 else
-	firefox -P default "$@"
+	firefox  --new-tab -P default "$@"
 fi

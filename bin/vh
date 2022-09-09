@@ -1,0 +1,45 @@
+#!/bin/bash
+
+unset=
+product=
+timeout=0
+
+while getopts ":up:s:" opt; do
+  case $opt in
+    u)
+      unset=1
+      ;;
+    p)
+      product=$OPTARG
+      ;;
+    s)
+      timeout=$OPTARG
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      ;;
+  esac
+done
+
+sleep "$timeout"
+
+if [[ -z $product ]]; then
+  echo "Available devices:"
+  echo "------------------"
+  vhuit64 -t 'get client state' | yq -p=xml '.state.server.device[] | {"prod": .+product, "host": .+boundClientHostname}'
+  echo
+  exit 0
+fi
+
+
+address=($(vhuit64 -t 'GET CLIENT STATE' | yq -p=xml ".state.server.device[] | select(.+product == \"${product}\") | .+serverName + \".\" + .+address + \" \" + .+clientId"))
+
+if [[ -n "${address[1]}" ]]; then
+	vhuit64 -t "stop using,${address}"
+
+	if [[ $unset -eq 1 ]]; then
+		exit 0
+	fi
+fi
+
+vhuit64 -t "use,${address}"

@@ -6,6 +6,7 @@ trayclock &
 if [ "$XDG_VTNR" -eq 1 ]; then
   wallpaper_dir=~/.wallpapers
   (sleep 4; bitwarden-desktop) &
+  (sleep 5; signal-desktop --use-tray-icon) &
 elif [ "$XDG_VTNR" -eq 3 ]; then
   wallpaper_dir=~/.wallpapers_work
   (sleep 3; zoom) &
