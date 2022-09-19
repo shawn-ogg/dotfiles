@@ -1,6 +1,11 @@
 export PATH
 PATH="$HOME/bin:$PATH"
 
+if [[ -d $HOME/.mix/escripts ]]; then
+  PATH="$HOME/.mix/escripts:$PATH"
+fi
+
+
 export EDITOR=vim
 export VISUAL=vim
 export BROWSER=firefox

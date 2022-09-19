@@ -1,0 +1,25 @@
+#!/bin/bash
+
+selenium_pid=
+
+trap '[[ -n $selenium_pid ]] && kill "$selenium_pid"' EXIT
+
+source ~/.config/loggerinner
+
+pass=$(yad \
+    --title="Passcode" \
+    --text="Enter 2FA passcode for user <b>$STAFF_ID</b>:" \
+    --image="dialog-password" \
+    --entry )
+[[ -z "$pass" ]] && exit 1
+
+export PASSCODE=$pass
+
+java -jar ~/selenium/selenium-server-standalone-2.53.1.jar &
+selenium_pid=$!
+
+sleep 0.1
+
+~/.mix/escripts/loggerinner 2>/dev/null
+
+

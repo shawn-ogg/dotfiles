@@ -7,12 +7,17 @@ fi
 
 if [ "$XDG_VTNR" -eq 1 ]; then
   wallpaper_dir=~/.wallpapers
+  (sleep 2; x-www-browser) &
   (sleep 4; bitwarden-desktop) &
   (sleep 5; signal-desktop --use-tray-icon) &
-elif [ "$XDG_VTNR" -eq 3 ]; then
+elif [ "$XDG_VTNR" -eq 2 ]; then
   wallpaper_dir=~/.wallpapers_work
+  (sleep 2; x-www-browser) &
   (sleep 3; zoom) &
   (sleep 4; 1password --silent) &
+elif [ "$XDG_VTNR" -eq 3 ]; then
+  wallpaper_dir=~/.wallpapers_work
+  (sleep 3; worklogin) &
 fi
 
 watch -n 3600 feh --bg-fill --randomize "${wallpaper_dir}/*" &> /dev/null &

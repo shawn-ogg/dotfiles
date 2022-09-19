@@ -1,0 +1,6 @@
+#!/bin/bash
+TERMINAL=alacritty
+
+cp menu.xml menu.xml.bak
+ob-yml-menu --terminal "$TERMINAL" ~/.config/openbox/menu.yaml > ~/.config/openbox/menu.xml
+openbox --reconfigure

@@ -45,7 +45,7 @@ fi
 autocutsel -fork
 autocutsel -selection PRIMARY -fork
 
-dunst &
+#dunst &
 redshift -l 53.33:-6.25 &
 
 #xautolock -time 10 -locker slock &
@@ -58,19 +58,19 @@ udiskie --automount --no-notify --no-tray &
 numlockx
 picom & # compositor
 
-(sleep 1; x-www-browser) &
+#(sleep 1; x-www-browser) &
 (sleep 5; setxkbmap -model pc105 -layout us,de -option grp:shifts_toggle) &
 (sleep 10; hp 2>/dev/null) &
 
-if [[ $XDG_VTNR -eq 2 ]]; then
-	export _JAVA_AWT_WM_NONREPARENTING=1
-	export AWT_TOOLKIT=MToolkit
-	wmname LG3D
-
-
-	~/bin/dwm_status &
-	exec dwm 2> ~/tmp/${XDG_VTNR}_dwm.log
-else
+#if [[ $XDG_VTNR -eq 2 ]]; then
+#	export _JAVA_AWT_WM_NONREPARENTING=1
+#	export AWT_TOOLKIT=MToolkit
+#	wmname LG3D
+#
+#
+#	~/bin/dwm_status &
+#	exec dwm 2> ~/tmp/${XDG_VTNR}_dwm.log
+#else
 	exec openbox-session 2> ~/tmp/${XDG_VTNR}_openbox.log
-fi
+#fi
 

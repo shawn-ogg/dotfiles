@@ -1,0 +1,42 @@
+---
+openbox_menu:
+    - Browser: x-www-browser https://wiki.hughes42.eu
+    - Terminal: $terminal  # defaults to xterm. Use eg. --terminal rxvt for a different one
+    - File Manager: $terminal -e mc
+    - separator:
+    - Games:
+        - Steam:
+        - Lutris:
+    - Development:
+        - Geany:  # defaults to 'geany'
+        - Meld:
+        - PyCharm:
+        - VS Code: code
+        - Vim: $terminal -e vim
+    - Browser:
+        - Chromium:
+        - Firefox:
+    - Mail/Chat:
+        - Zoom:
+        - Telegram: telegram-desktop
+    - Multimedia:
+        - PulseAudio Volume Control: pavucontrol
+    - Pipemenus:
+        - Remote Hosts: |
+            ~/bin/bl-sshconfig-pipemenu
+    - System:
+        - htop: $terminal -e htop
+        - Openbox:
+            - Regenerate Menu: ob-regenerate-menu
+            - Reconfigure: openbox --reconfigure
+    - separator:
+    - Time: |
+        ~/bin/ob-time-pipemenu
+    - Layout: |
+        ~/bin/ob-layout-pipemenu
+    - separator:
+    - Exit:
+      - Logout: openbox --exit
+      - Shutdown: systemctl poweroff
+      - Restart: systemctl reboot
+

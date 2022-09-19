@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <openbox_menu>
   <menu id="root-menu" label="Openbox 3">
+    <item label="Browser"> <action name="Execute">
+    	<execute>x-www-browser https://wiki.hughes42.eu</execute>
+    </action></item>
     <item label="Terminal"> <action name="Execute">
     	<execute>alacritty</execute>
     </action></item>
@@ -62,6 +65,9 @@
       	<execute>alacritty -e htop</execute>
       </action></item>
       <menu id="8" label="Openbox">
+        <item label="Regenerate Menu"> <action name="Execute">
+        	<execute>ob-yml-menu -t alacritty ~/.config/openbox/menu.yaml > ~/.config/openbox/menu.xml</execute>
+        </action></item>
         <item label="Reconfigure"> <action name="Execute">
         	<execute>openbox --reconfigure</execute>
         </action></item>
