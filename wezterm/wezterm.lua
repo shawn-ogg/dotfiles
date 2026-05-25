@@ -39,7 +39,7 @@ config.keys = {
   },
 },
 
--- Hyper-b -> horizontal split
+-- Hyper-'b' -> horizontal split
 {
   key = 'b',
   mods = 'SHIFT|CTRL|ALT|CMD',
@@ -84,20 +84,20 @@ config.keys = {
   },
 },
 
--- Hyper-s -> sesh popup
-{
-  key = 's',
-  mods = 'SHIFT|CTRL|ALT|CMD',
-  action = wezterm.action.Multiple {
-    wezterm.action.SendKey {
-      key = 'a',
-      mods = 'CTRL',
-    },
-    wezterm.action.SendKey {
-      key = 's',
-    },
-  },
-},
+-- -- Hyper-s -> sesh popup
+-- {
+--   key = 's',
+--   mods = 'SHIFT|CTRL|ALT|CMD',
+--   action = wezterm.action.Multiple {
+--     wezterm.action.SendKey {
+--       key = 'a',
+--       mods = 'CTRL',
+--     },
+--     wezterm.action.SendKey {
+--       key = 's',
+--     },
+--   },
+-- },
 
 -- Hyper-n -> next tmux window
 {
@@ -125,6 +125,21 @@ config.keys = {
     },
     wezterm.action.SendKey {
       key = 'p',
+    },
+  },
+},
+
+-- Hyper-c -> create tmux window
+{
+  key = 'c',
+  mods = 'SHIFT|CTRL|ALT|CMD',
+  action = wezterm.action.Multiple {
+    wezterm.action.SendKey {
+      key = 'a',
+      mods = 'CTRL',
+    },
+    wezterm.action.SendKey {
+      key = 'c',
     },
   },
 },

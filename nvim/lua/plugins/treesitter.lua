@@ -2,15 +2,15 @@ return {
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
-    ft = {
-      "bash",
-      "sh",
-      "python",
-      "yaml",
-      "markdown",
-      "lua",
-      "json",
-    },
+    -- ft = {
+    --   "bash",
+    --   "sh",
+    --   "python",
+    --   "yaml",
+    --   "markdown",
+    --   "lua",
+    --   "json",
+    -- },
     opts = {
       ensure_installed = {
         "bash",
@@ -23,6 +23,7 @@ return {
       },
       highlight = {
         enable = true,
+        additional_vim_regex_highlighting = { "bash" },
       },
     },
     config = function(_, opts)

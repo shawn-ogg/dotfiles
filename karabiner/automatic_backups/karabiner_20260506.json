@@ -6,7 +6,6 @@
                 "rules": [
                     {
                         "description": "option-f → Finder",
-                        "enabled": false,
                         "manipulators": [
                             {
                                 "from": {
@@ -20,7 +19,6 @@
                     },
                     {
                         "description": "option-9 → Microsoft Teams",
-                        "enabled": false,
                         "manipulators": [
                             {
                                 "from": {
@@ -34,7 +32,6 @@
                     },
                     {
                         "description": "option-3 → Visual Studio Code",
-                        "enabled": false,
                         "manipulators": [
                             {
                                 "from": {
@@ -48,7 +45,6 @@
                     },
                     {
                         "description": "option-2 → WezTerm",
-                        "enabled": false,
                         "manipulators": [
                             {
                                 "from": {
@@ -62,7 +58,6 @@
                     },
                     {
                         "description": "option-1 → Google Chrome",
-                        "enabled": false,
                         "manipulators": [
                             {
                                 "from": {
@@ -132,28 +127,8 @@
                     }
                 ]
             },
-            "devices": [
-                {
-                    "identifiers": {
-                        "device_address": "e7-ef-6c-6d-26-1a",
-                        "is_keyboard": true,
-                        "is_pointing_device": true
-                    },
-                    "ignore": false
-                },
-                {
-                    "identifiers": {
-                        "is_keyboard": true,
-                        "is_pointing_device": true,
-                        "product_id": 45924,
-                        "vendor_id": 1133
-                    },
-                    "ignore": false
-                }
-            ],
             "name": "Default profile",
-            "selected": true,
-            "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
+            "selected": true
         }
     ]
 }

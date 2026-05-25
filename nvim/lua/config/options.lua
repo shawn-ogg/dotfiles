@@ -3,11 +3,11 @@ local opt = vim.opt
 opt.number = true
 opt.relativenumber = true
 opt.mouse = "a"
-opt.clipboard = "unnamedplus"
+-- opt.clipboard = "unnamedplus"
 opt.termguicolors = true
 opt.signcolumn = "yes"
 opt.updatetime = 250
-opt.timeoutlen = 300
+opt.timeoutlen = 500
 
 opt.tabstop = 2
 opt.shiftwidth = 2
@@ -31,3 +31,4 @@ opt.ttyfast = true
 
 vim.g.loaded_matchparen = 1
 vim.g.termguicolors = true
+

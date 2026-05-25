@@ -76,6 +76,7 @@
                     },
                     {
                         "description": "Hyper-hjkl arrows",
+                        "enabled": false,
                         "manipulators": [
                             {
                                 "from": {

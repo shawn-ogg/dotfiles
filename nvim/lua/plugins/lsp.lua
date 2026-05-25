@@ -28,6 +28,7 @@ return {
 
       vim.lsp.config("marksman", {})
       vim.lsp.enable("marksman")
+      vim.lsp.enable("terrformls")
 
       vim.lsp.config("lua_ls", {
         settings = {
