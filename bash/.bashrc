@@ -45,6 +45,7 @@ for bash_config in \
   "$bash_config_dir/aliases.local.sh" \
   "$bash_config_dir/functions.local.sh" \
   "$bash_config_dir/prompt.local.sh" \
+  "$bash_config_dir/secrets.sh" \
   "$bash_config_dir/local.sh"; do
   # shellcheck source=/dev/null
   [[ -r "$bash_config" ]] && source "$bash_config"
