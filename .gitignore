@@ -1,3 +1,4 @@
 tmux/.config/tmux/plugins/
 bash/.config/bash/*.local.sh
 bash/.config/bash/secrets.sh
+bash/.config/bash/env.secrets.sh
