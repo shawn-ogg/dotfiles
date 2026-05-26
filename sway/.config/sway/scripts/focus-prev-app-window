@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Get the current focused window's app_id/class
+current_app=$(swaymsg -t get_tree | jq -r '.. | objects | select(.focused == true) | .app_id // .window_properties.class // empty' | head -1)
+
+if [[ -z "$current_app" ]]; then
+    exit 1
+fi
+
+# Get all windows with the same app_id/class, sorted by their node id
+windows=$(swaymsg -t get_tree | jq -r ".. | objects | select((.app_id // .window_properties.class // empty) == \"$current_app\") | .id" | sort -n)
+
+if [[ -z "$windows" ]]; then
+    exit 1
+fi
+
+# Convert to array
+mapfile -t window_array <<< "$windows"
+
+if [[ ${#window_array[@]} -le 1 ]]; then
+    exit 0  # Only one window, nothing to do
+fi
+
+# Find current focused window's id
+current_id=$(swaymsg -t get_tree | jq -r '.. | objects | select(.focused == true) | .id')
+
+# Find the index of current window
+current_index=-1
+for i in "${!window_array[@]}"; do
+    if [[ "${window_array[$i]}" == "$current_id" ]]; then
+        current_index=$i
+        break
+    fi
+done
+
+# Calculate previous index (wrap around)
+prev_index=$(( (current_index - 1 + ${#window_array[@]}) % ${#window_array[@]} ))
+
+# Focus the previous window
+swaymsg "[con_id=${window_array[$prev_index]}] focus"

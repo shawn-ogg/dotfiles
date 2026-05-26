@@ -70,6 +70,9 @@ for_window [app_id=".*"] floating enable
 bindsym $mod+Tab focus next
 bindsym $mod+Shift+Tab focus prev
 
+bindsym $mod+grave exec $scripts/focus-next-app-window
+bindsym $mod+Shift+grave exec $scripts/focus-prev-app-window
+
 ### ------------------------------------------------------------
 ### Launcher
 ### ------------------------------------------------------------

@@ -25,8 +25,7 @@ esac
 for bash_config in \
   "$bash_config_dir/env.sh" \
   "$bash_config_dir/aliases.sh" \
-  "$bash_config_dir/functions.sh" \
-  "$bash_config_dir/prompt.sh"; do
+  "$bash_config_dir/functions.sh"; do
   # shellcheck source=/dev/null
   [[ -r "$bash_config" ]] && source "$bash_config"
 done
@@ -50,6 +49,11 @@ for bash_config in \
   # shellcheck source=/dev/null
   [[ -r "$bash_config" ]] && source "$bash_config"
 done
+
+if [[ -r "$bash_config_dir/prompt.sh" ]]; then
+  # shellcheck source=/dev/null
+  source "$bash_config_dir/prompt.sh"
+fi
 
 unset bash_config
 unset bash_config_dir
