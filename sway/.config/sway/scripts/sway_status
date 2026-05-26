@@ -1,0 +1,64 @@
+#!/bin/bash
+# Network speed stuff stolen from http://linuxclues.blogspot.sg/2009/11/shell-script-show-network-speed.html
+
+print_ip() {
+	ip=$(ip route get 8.8.8.8 2>/dev/null|grep -Eo 'src [0-9.]+'|grep -Eo '[0-9.]+')
+	echo -e "$ip"
+}
+print_wifi() {
+	iwctl station wlan0 show | grep AverageRSSI | awk '{print $2$3}'
+}
+print_wifiname() {
+	iwctl station wlan0 show | grep 'Connected network' | awk '{print $3}'
+}
+
+print_mem(){
+	echo $(($(grep -m1 'MemAvailable:' /proc/meminfo | awk '{print $2}') / 1024))
+}
+
+print_network(){
+	logfile=/dev/shm/netlog
+	[ -f "$logfile" ] || echo "0 0" > "$logfile"
+	read -r rxprev txprev < "$logfile"
+	rxcurrent="$(($(paste -d '+' /sys/class/net/[ew]*/statistics/rx_bytes)))"
+	txcurrent="$(($(paste -d '+' /sys/class/net/[ew]*/statistics/tx_bytes)))"
+	echo "$(bc <<< "scale=2; ($rxcurrent-$rxprev) / 10^6")" "$(bc <<< "scale=2; ($txcurrent-$txprev) / 10^6")"
+	echo "$rxcurrent $txcurrent" > "$logfile"
+}
+
+print_temp(){
+	test -f /sys/class/thermal/thermal_zone0/temp || return 0
+	echo $(head -c 2 /sys/class/thermal/thermal_zone0/temp)C
+}
+
+#print_layout(){
+#	xkblayout-state print "%s"
+#}
+
+
+print_bat(){
+	battery=$(cat /sys/class/power_supply/BAT0/capacity)
+
+	if (( battery < 20)); then
+		echo "${battery}% LOW"
+	else
+		echo "${battery}%"
+	fi
+}
+
+print_date(){
+	date "+%a %m-%d %T%:::z"
+}
+
+print_brightness(){
+	brightnessctl -m | awk -F',' '{print $4}'
+}
+
+print_volume(){
+	echo "$(pamixer --get-volume)%"
+}
+
+echo "[$(print_mem) mem][$(print_temp) temp][$(print_network) in/out][$(print_ip) ip][$(print_wifiname) $(print_wifi)][$(print_brightness) brightness][$(print_volume) volume][$(print_bat) battery][$(print_date)]"
+
+
+#💎 💻 💡 🔌 ⚡ 📁

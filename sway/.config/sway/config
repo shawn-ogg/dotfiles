@@ -49,6 +49,7 @@ exec_always {
 default_floating_border pixel 2
 default_border pixel 2
 
+gaps top 32
 gaps inner 6
 gaps outer 2
 
@@ -113,7 +114,7 @@ bindsym $mod+4 exec $scripts/focus-or-launch \
 ### ------------------------------------------------------------
 
 # Hyper+Space -> sesh
-bindsym XF86MenuKB exec ~/.config/sway/scripts/sesh-popup
+bindsym XF86MenuKB exec $scripts/sesh-popup
 
 # # Hyper+v -> tmux vertical split
 # bindsym Ctrl+Alt+v exec wezterm cli send-text --no-paste $'\x01|'
@@ -237,9 +238,20 @@ exec wl-paste --type image --watch cliphist store
 ### ------------------------------------------------------------
 
 bar {
-    status_command while date +'%Y-%m-%d %H:%M:%S'; do sleep 1; done
     position top
+    workspace_buttons no
+
+    # When the status_command prints a new line to stdout, swaybar updates.
+    # The default just shows the current date and time.
+    #status_command while date +'%Y-%m-%d %X'; do sleep 1; done
+    #status_command while date +[$(brightnessctl -m | awk -F',' '{print $4}')\ brightness][$(cat /sys/class/power_supply/BAT0/capacity)%\ battery]'[%Y-%m-%d %X]'; do sleep 1; done
+    status_command while $scripts/sway_status; do sleep 1; done
+    colors {
+        statusline #ffffff
+        background #323232
+    }
 }
+
 
 ### ------------------------------------------------------------
 ### Floating app rules
