@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+if swaymsg -t get_tree | grep -q '"app_id": "org.wezfurlong.wezterm"'; then
+    
+    swaymsg '[app_id="org.wezfurlong.wezterm"] focus'
+
+    wezterm cli send-text --no-paste $'\x01s'
+else
+    wezterm start -- bash -lc '
+      tmux attach || tmux new
+    '
+fi

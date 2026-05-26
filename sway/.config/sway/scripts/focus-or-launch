@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+APP_ID="${1:-}"
+shift || true
+
+if [[ -z "$APP_ID" ]]; then
+    echo "usage: focus-or-launch <app_id> [command args...]"
+    exit 1
+fi
+
+if swaymsg -t get_tree \
+    | jq -e ".. | objects | select(.app_id? == \"$APP_ID\")" \
+    >/dev/null; then
+
+    swaymsg "[app_id=\"$APP_ID\"] focus"
+
+else
+    if [[ $# -gt 0 ]]; then
+        exec "$@"
+    else
+        exec "$APP_ID"
+    fi
+fi

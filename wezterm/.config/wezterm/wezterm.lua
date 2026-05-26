@@ -3,12 +3,22 @@ local act = wezterm.action
 
 local config = wezterm.config_builder()
 
+local is_macos = wezterm.target_triple:find("darwin") ~= nil
+
+local leader_mod = is_macos and 'CMD' or 'SUPER'
+
+local hyper_mods =
+  is_macos
+  and 'SHIFT|CTRL|ALT|CMD'
+  or 'SHIFT|CTRL|ALT|SUPER'
+
 -- Appearance ---------------------------------------------------------------
 
 config.color_scheme = 'Twilight (dark) (terminal.sexy)'
 config.font = wezterm.font('Hack Nerd Font')
 config.font_size = 14
 config.default_cursor_style = 'BlinkingBar'
+
 config.initial_cols = 220
 config.initial_rows = 60
 
@@ -19,15 +29,72 @@ config.window_close_confirmation = 'NeverPrompt'
 config.hide_tab_bar_if_only_one_tab = true
 config.window_decorations = 'RESIZE'
 
--- Clipboard + basic shortcuts ---------------------------------------------
+-- Keybindings --------------------------------------------------------------
 
-config.keys = {
-  -- tmux workflow shortcuts -----------------------------------------------
+config.keys = {}
+
+-- Clipboard ----------------------------------------------------------------
+
+if is_macos then
+  -- macOS: Cmd+c/v
+
+  table.insert(config.keys, {
+    key = 'c',
+    mods = 'CMD',
+    action = act.CopyTo 'ClipboardAndPrimarySelection',
+  })
+
+  table.insert(config.keys, {
+    key = 'v',
+    mods = 'CMD',
+    action = act.PasteFrom 'Clipboard',
+  })
+
+else
+  -- Linux:
+  -- Ctrl+c -> copy
+  -- Ctrl+Shift+c -> SIGINT
+
+  table.insert(config.keys, {
+    key = 'c',
+    mods = 'CTRL',
+    action = act.CopyTo 'ClipboardAndPrimarySelection',
+  })
+
+  table.insert(config.keys, {
+    key = 'c',
+    mods = 'CTRL|SHIFT',
+    action = act.SendKey {
+      key = 'c',
+      mods = 'CTRL',
+    },
+  })
+
+  -- Ctrl+v -> paste
+  -- Ctrl+Shift+v -> literal Ctrl+v
+
+  table.insert(config.keys, {
+    key = 'v',
+    mods = 'CTRL',
+    action = act.PasteFrom 'Clipboard',
+  })
+
+  table.insert(config.keys, {
+    key = 'v',
+    mods = 'CTRL|SHIFT',
+    action = act.SendKey {
+      key = 'v',
+      mods = 'CTRL',
+    },
+  })
+end
+
+-- tmux workflow shortcuts --------------------------------------------------
 
 -- Hyper-v -> vertical split
-{
+table.insert(config.keys, {
   key = 'v',
-  mods = 'SHIFT|CTRL|ALT|CMD',
+  mods = hyper_mods,
   action = wezterm.action.Multiple {
     wezterm.action.SendKey {
       key = 'a',
@@ -37,12 +104,12 @@ config.keys = {
       key = '|',
     },
   },
-},
+})
 
--- Hyper-'b' -> horizontal split
-{
+-- Hyper-b -> horizontal split
+table.insert(config.keys, {
   key = 'b',
-  mods = 'SHIFT|CTRL|ALT|CMD',
+  mods = hyper_mods,
   action = wezterm.action.Multiple {
     wezterm.action.SendKey {
       key = 'a',
@@ -52,12 +119,12 @@ config.keys = {
       key = '-',
     },
   },
-},
+})
 
 -- Hyper-z -> zoom pane
-{
+table.insert(config.keys, {
   key = 'z',
-  mods = 'SHIFT|CTRL|ALT|CMD',
+  mods = hyper_mods,
   action = wezterm.action.Multiple {
     wezterm.action.SendKey {
       key = 'a',
@@ -67,12 +134,12 @@ config.keys = {
       key = 'z',
     },
   },
-},
+})
 
 -- Hyper-x -> close pane
-{
+table.insert(config.keys, {
   key = 'x',
-  mods = 'SHIFT|CTRL|ALT|CMD',
+  mods = hyper_mods,
   action = wezterm.action.Multiple {
     wezterm.action.SendKey {
       key = 'a',
@@ -82,27 +149,12 @@ config.keys = {
       key = 'x',
     },
   },
-},
-
--- -- Hyper-s -> sesh popup
--- {
---   key = 's',
---   mods = 'SHIFT|CTRL|ALT|CMD',
---   action = wezterm.action.Multiple {
---     wezterm.action.SendKey {
---       key = 'a',
---       mods = 'CTRL',
---     },
---     wezterm.action.SendKey {
---       key = 's',
---     },
---   },
--- },
+})
 
 -- Hyper-n -> next tmux window
-{
+table.insert(config.keys, {
   key = 'n',
-  mods = 'SHIFT|CTRL|ALT|CMD',
+  mods = hyper_mods,
   action = wezterm.action.Multiple {
     wezterm.action.SendKey {
       key = 'a',
@@ -112,12 +164,12 @@ config.keys = {
       key = 'n',
     },
   },
-},
+})
 
 -- Hyper-p -> previous tmux window
-{
+table.insert(config.keys, {
   key = 'p',
-  mods = 'SHIFT|CTRL|ALT|CMD',
+  mods = hyper_mods,
   action = wezterm.action.Multiple {
     wezterm.action.SendKey {
       key = 'a',
@@ -127,12 +179,12 @@ config.keys = {
       key = 'p',
     },
   },
-},
+})
 
 -- Hyper-c -> create tmux window
-{
+table.insert(config.keys, {
   key = 'c',
-  mods = 'SHIFT|CTRL|ALT|CMD',
+  mods = hyper_mods,
   action = wezterm.action.Multiple {
     wezterm.action.SendKey {
       key = 'a',
@@ -142,66 +194,70 @@ config.keys = {
       key = 'c',
     },
   },
-},
+})
 
-  -- Copy / paste
-  {
-    key = 'c',
-    mods = 'CMD',
-    action = act.CopyTo 'ClipboardAndPrimarySelection',
-  },
-  {
-    key = 'v',
-    mods = 'CMD',
-    action = act.PasteFrom 'Clipboard',
-  },
+-- Font size ----------------------------------------------------------------
 
-  -- Font size
-  {
-    key = '=',
-    mods = 'CMD',
-    action = act.IncreaseFontSize,
-  },
-  {
-    key = '-',
-    mods = 'CMD',
-    action = act.DecreaseFontSize,
-  },
-  {
-    key = '0',
-    mods = 'CMD',
-    action = act.ResetFontSize,
-  },
+table.insert(config.keys, {
+  key = '=',
+  mods = leader_mod,
+  action = act.IncreaseFontSize,
+})
 
-  -- New window
-  {
-    key = 'n',
-    mods = 'CMD',
-    action = act.SpawnWindow,
-  },
+table.insert(config.keys, {
+  key = '-',
+  mods = leader_mod,
+  action = act.DecreaseFontSize,
+})
 
-  -- Close window/pane
-  {
-    key = 'w',
-    mods = 'CMD',
-    action = act.CloseCurrentPane { confirm = true },
-  },
-}
+table.insert(config.keys, {
+  key = '0',
+  mods = leader_mod,
+  action = act.ResetFontSize,
+})
 
--- Mouse -------------------------------------------------------------------
+-- New window ---------------------------------------------------------------
+
+table.insert(config.keys, {
+  key = 'n',
+  mods = leader_mod,
+  action = act.SpawnWindow,
+})
+
+-- Close window/pane --------------------------------------------------------
+
+table.insert(config.keys, {
+  key = 'w',
+  mods = leader_mod,
+  action = act.CloseCurrentPane { confirm = true },
+})
+
+-- Mouse --------------------------------------------------------------------
 
 config.mouse_bindings = {
   {
     event = { Down = { streak = 1, button = 'Right' } },
     mods = 'NONE',
+
     action = wezterm.action_callback(function(window, pane)
-      local has_selection = window:get_selection_text_for_pane(pane) ~= ''
+      local has_selection =
+        window:get_selection_text_for_pane(pane) ~= ''
 
       if has_selection then
-        window:perform_action(act.CopyTo 'ClipboardAndPrimarySelection', pane)
-        window:perform_action(act.ClearSelection, pane)
+        window:perform_action(
+          act.CopyTo 'ClipboardAndPrimarySelection',
+          pane
+        )
+
+        window:perform_action(
+          act.ClearSelection,
+          pane
+        )
       else
-        window:perform_action(act.PasteFrom 'Clipboard', pane)
+        window:perform_action(
+          act.PasteFrom 'Clipboard',
+          pane
+        )
       end
     end),
   },

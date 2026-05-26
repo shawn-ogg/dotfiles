@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+cat <<'EOF' | fuzzel --dmenu --prompt "Shortcuts> "
+Super+1              Chromium
+Super+2              WezTerm
+Super+3              VSCode
+Super+4              File Manager
+
+Super+Space          App Launcher
+Super+Return         Terminal
+
+Super+h/j/k/l        Focus windows
+
+Super+Shift+h        Left half
+Super+Shift+l        Right half
+Super+Shift+k        Top half
+Super+Shift+j        Bottom half
+Super+Shift+m        Maximize
+Super+c              Center window
+
+Ctrl+Space           Sesh popup
+
+Print                Screenshot
+Super+Shift+s        Region screenshot
+
+Super+Shift+c        Reload sway
+Super+Shift+e        Exit sway
+
+Caps+h/j/k/l         Arrow keys
+Caps+Space           Sesh popup
+EOF

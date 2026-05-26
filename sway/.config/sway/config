@@ -1,0 +1,262 @@
+### ------------------------------------------------------------
+### Minimal sway config for launcher-centric workflow
+### ------------------------------------------------------------
+
+set $mod Mod4
+set $term wezterm
+set $browser chromium
+set $menu fuzzel
+set $scripts ~/.config/sway/scripts
+
+### ------------------------------------------------------------
+### Environment
+### ------------------------------------------------------------
+
+
+# import sway/wayland environment into systemd user session
+exec systemctl --user import-environment \
+    DISPLAY \
+    WAYLAND_DISPLAY \
+    SWAYSOCK \
+    XDG_CURRENT_DESKTOP \
+    XDG_SESSION_TYPE
+
+# propagate env vars to dbus/systemd activated apps
+exec dbus-update-activation-environment --systemd \
+    DISPLAY \
+    WAYLAND_DISPLAY \
+    SWAYSOCK \
+    XDG_CURRENT_DESKTOP=sway \
+    XDG_SESSION_TYPE=wayland
+
+
+# toolkits
+exec_always {
+    export XDG_CURRENT_DESKTOP=sway
+    export XDG_SESSION_TYPE=wayland
+    export MOZ_ENABLE_WAYLAND=1
+    export ELECTRON_OZONE_PLATFORM_HINT=auto
+    export QT_QPA_PLATFORM=wayland
+    export SDL_VIDEODRIVER=wayland
+    export _JAVA_AWT_WM_NONREPARENTING=1
+}
+
+
+### ------------------------------------------------------------
+### Appearance
+### ------------------------------------------------------------
+
+default_floating_border pixel 2
+default_border pixel 2
+
+gaps inner 6
+gaps outer 2
+
+font pango:Hack Nerd Font 10
+
+focus_follows_mouse no
+mouse_warping none
+
+### ------------------------------------------------------------
+### Disable tiling feel
+### ------------------------------------------------------------
+
+workspace_layout tabbed
+
+# new windows float by default
+for_window [class=".*"] floating enable
+for_window [app_id=".*"] floating enable
+
+bindsym $mod+Tab focus next
+bindsym $mod+Shift+Tab focus prev
+
+### ------------------------------------------------------------
+### Launcher
+### ------------------------------------------------------------
+
+# app launcher
+bindsym $mod+space exec $menu
+
+# terminal
+#bindsym $mod+Return exec $term
+
+### ------------------------------------------------------------
+### Application launchers
+### ------------------------------------------------------------
+
+# super+1 -> chromium
+bindsym $mod+1 exec $scripts/focus-or-launch \
+    chromium \
+    chromium \
+    --ozone-platform-hint=auto
+
+# super+2 -> wezterm
+bindsym $mod+2 exec $scripts/focus-or-launch \
+    org.wezfurlong.wezterm \
+    wezterm
+
+# super+3 -> vscode
+bindsym $mod+3 exec $scripts/focus-or-launch \
+    code \
+    code \
+    --ozone-platform-hint=auto
+
+# super+4 -> file manager
+bindsym $mod+4 exec $scripts/focus-or-launch \
+    thunar
+
+### ------------------------------------------------------------
+### Session launcher
+### ------------------------------------------------------------
+
+# Hyper+Space -> sesh
+bindsym XF86MenuKB exec ~/.config/sway/scripts/sesh-popup
+
+# # Hyper+v -> tmux vertical split
+# bindsym Ctrl+Alt+v exec wezterm cli send-text --no-paste $'\x01|'
+#
+# # Hyper+b -> tmux horizontal split
+# bindsym Ctrl+Alt+b exec wezterm cli send-text --no-paste $'\x01-'
+#
+# # Hyper+z -> tmux zoom
+# bindsym Ctrl+Alt+z exec wezterm cli send-text --no-paste $'\x01z'
+#
+# # Hyper+x -> tmux close pane
+# bindsym Ctrl+Alt+x exec wezterm cli send-text --no-paste $'\x01x'
+#
+# # Hyper+n -> next tmux window
+# bindsym Ctrl+Alt+n exec wezterm cli send-text --no-paste $'\x01n'
+#
+# # Hyper+p -> previous tmux window
+# bindsym Ctrl+Alt+p exec wezterm cli send-text --no-paste $'\x01p'
+#
+# # Hyper+t -> new tmux window
+# bindsym Ctrl+Alt+t exec wezterm cli send-text --no-paste $'\x01c'
+
+### ------------------------------------------------------------
+### shortcut help
+### ------------------------------------------------------------
+bindsym Mod1+h exec ~/.config/sway/scripts/show-help
+
+
+### ------------------------------------------------------------
+### Navigation
+### ------------------------------------------------------------
+
+bindsym $mod+h focus left
+bindsym $mod+j focus down
+bindsym $mod+k focus up
+bindsym $mod+l focus right
+
+### ------------------------------------------------------------
+### Rectangle-style window management
+### ------------------------------------------------------------
+
+# left half
+bindsym $mod+Shift+h \
+    floating enable, \
+    resize set width 50 ppt height 100 ppt, \
+    move position 0 ppt 0 ppt
+
+# right half
+bindsym $mod+Shift+l \
+    floating enable, \
+    resize set width 50 ppt height 100 ppt, \
+    move position 50 ppt 0 ppt
+
+# top half
+bindsym $mod+Shift+k \
+    floating enable, \
+    resize set width 100 ppt height 50 ppt, \
+    move position 0 ppt 0 ppt
+
+# bottom half
+bindsym $mod+Shift+j \
+    floating enable, \
+    resize set width 100 ppt height 50 ppt, \
+    move position 0 ppt 50 ppt
+
+# maximize
+bindsym $mod+Shift+m \
+    floating enable, \
+    resize set width 100 ppt height 100 ppt, \
+    move position 0 ppt 0 ppt
+
+# centered window
+bindsym $mod+c \
+    floating enable, \
+    resize set width 70 ppt height 80 ppt, \
+    move position center
+
+### ------------------------------------------------------------
+### Resize mode
+### ------------------------------------------------------------
+
+mode "resize" {
+    bindsym h resize shrink width 20 px
+    bindsym j resize grow height 20 px
+    bindsym k resize shrink height 20 px
+    bindsym l resize grow width 20 px
+
+    bindsym Return mode "default"
+    bindsym Escape mode "default"
+}
+
+bindsym $mod+r mode "resize"
+
+### ------------------------------------------------------------
+### Screenshots
+### ------------------------------------------------------------
+
+# full screen
+bindsym Print exec grim ~/Pictures/$(date +'%Y-%m-%d_%H-%M-%S').png
+
+# region -> clipboard
+bindsym $mod+Shift+s exec grim -g "$(slurp)" - | wl-copy
+
+### ------------------------------------------------------------
+### Reload / exit
+### ------------------------------------------------------------
+
+bindsym $mod+Shift+c reload
+bindsym $mod+Shift+e exit
+
+### ------------------------------------------------------------
+### Notifications / clipboard
+### ------------------------------------------------------------
+
+exec mako
+exec wl-paste --type text --watch cliphist store
+exec wl-paste --type image --watch cliphist store
+
+### ------------------------------------------------------------
+### Status bar
+### ------------------------------------------------------------
+
+bar {
+    status_command while date +'%Y-%m-%d %H:%M:%S'; do sleep 1; done
+    position top
+}
+
+### ------------------------------------------------------------
+### Floating app rules
+### ------------------------------------------------------------
+
+for_window [app_id="pavucontrol"] floating enable
+for_window [app_id="nm-connection-editor"] floating enable
+for_window [title="Picture in picture"] floating enable
+
+### ------------------------------------------------------------
+### Idle / lock
+### ------------------------------------------------------------
+
+exec swayidle -w \
+    timeout 300 'swaylock -f' \
+    timeout 600 'swaymsg "output * dpms off"' \
+    resume 'swaymsg "output * dpms on"'
+
+### ------------------------------------------------------------
+### Mouse
+### ------------------------------------------------------------
+
+floating_modifier $mod
