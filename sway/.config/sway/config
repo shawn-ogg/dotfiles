@@ -41,6 +41,11 @@ exec_always {
     export _JAVA_AWT_WM_NONREPARENTING=1
 }
 
+exec_always {
+    export GTK_THEME=Adwaita-dark
+    export GTK_APPLICATION_PREFER_DARK_THEME=1
+}
+
 
 ### ------------------------------------------------------------
 ### Appearance
