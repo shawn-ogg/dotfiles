@@ -29,3 +29,17 @@ export LSCOLORS="ExFxBxDxCxegedabagacad"
 export HOMEBREW_NO_AUTO_UPDATE=1
 export HOMEBREW_NO_ANALYTICS=1
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=yes
+
+export GH_HOST="github.tools.sap"
+
+if [[ -f ~/.bash_vault ]]; then
+  # shellcheck source=/dev/null
+  source ~/.bash_vault
+fi
+
+if [[ -z "$SSH_AUTH_SOCK" ]]; then
+  eval "$(ssh-agent -s)" >/dev/null
+  if declare -F vault-setup >/dev/null 2>&1; then
+    vault-setup
+  fi
+fi

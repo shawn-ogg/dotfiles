@@ -221,7 +221,7 @@ end)
 web:bind({}, "j", function()
   focusChromeTab(
     --"Data Pipeline Board",
-    "https://securityjira.wdf.sap.corp/secure/RapidBoard.jspa?rapidView=508&projectKey=DPE#"
+    "https://securityjira.wbs.only.sap/secure/RapidBoard.jspa?rapidView=508&projectKey=DPE#"
   )()
 
   web:exit()
@@ -229,7 +229,7 @@ end)
 
 web:bind({"shift"}, "j", function()
   focusChromeTab(
-    "https://securityjira.wdf.sap.corp/secure/RapidBoard.jspa?rapidView=527&projectKey=DPE"
+    "https://securityjira.wbs.only.sap/secure/RapidBoard.jspa?rapidView=527&projectKey=DPE"
   )()
 
   web:exit()
@@ -448,7 +448,7 @@ local hotkeys = {
     {"Hyper+T b", "Teams: Busy"},
     {"Hyper+T r", "Teams: BRB"},
     {"Hyper+T w", "Teams: Away"},
-    {"Hyper+R",   "Reload Hammerspoon"},
+    {"Hyper+r",   "Reload Hammerspoon"},
     {"Hyper+v", "TMUX vertical split"},
     {"Hyper+b", "TMUX horizontal split"},
     {"Hyper+z", "TMUX zoom pane"},
@@ -456,7 +456,7 @@ local hotkeys = {
     {"Hyper+n", "TMUX next tmux window"},
     {"Hyper+p", "TMUX previous tmux window"},
     {"Hyper+c", "TMUX create tmux window"},
-    {"alt+h",   "Show Help"}
+    {"Cmd+h",   "Show Help"}
 }
 
 local cheatSheetStyle = {
@@ -501,7 +501,7 @@ end)
 
 -- Hyper + ?
 hs.hotkey.bind(
-    { "alt" },
+    { "cmd" },
     "h",
     showHotkeys
 )

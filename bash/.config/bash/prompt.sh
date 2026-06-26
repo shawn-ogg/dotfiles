@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 
-bash_append_prompt_command reload_aliases_if_needed_and_append_history
+bash_append_prompt_command reload_config_if_needed_and_append_history
 
 if command -v tmux >/dev/null 2>&1 \
   && [[ -z "$TMUX" ]] \

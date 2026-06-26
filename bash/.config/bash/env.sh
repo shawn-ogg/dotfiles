@@ -63,18 +63,5 @@ pathadd "$HOME/go/bin"
 pathadd "$HOME/.console-ninja/.bin"
 
 export BAT_THEME="ansi"
-export GH_HOST="github.tools.sap"
 
 stty werase undef 2>/dev/null || true
-
-if [[ -f ~/.bash_vault ]]; then
-  # shellcheck source=/dev/null
-  source ~/.bash_vault
-fi
-
-if [[ -z "$SSH_AUTH_SOCK" ]]; then
-  eval "$(ssh-agent -s)" >/dev/null
-  if declare -F vault-setup >/dev/null 2>&1; then
-    vault-setup
-  fi
-fi

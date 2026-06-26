@@ -31,7 +31,10 @@ config.window_decorations = 'RESIZE'
 
 -- Keybindings --------------------------------------------------------------
 
-config.keys = {}
+config.keys = {
+  {key="Enter", mods="SHIFT", action=wezterm.action{SendString="\x1b\n"}},
+}
+
 
 -- Clipboard ----------------------------------------------------------------
 
@@ -88,6 +91,7 @@ else
     },
   })
 end
+
 
 -- tmux workflow shortcuts --------------------------------------------------
 
@@ -186,15 +190,22 @@ table.insert(config.keys, {
   key = 'c',
   mods = hyper_mods,
   action = wezterm.action.Multiple {
-    wezterm.action.SendKey {
-      key = 'a',
-      mods = 'CTRL',
-    },
-    wezterm.action.SendKey {
-      key = 'c',
-    },
+    wezterm.action.SendKey { key = 'a', mods = 'CTRL' },
+    wezterm.action.SendKey { key = 'c' },
   },
 })
+
+-- Hyper-1..9 -> switch to tmux window N
+for i = 1, 9 do
+  table.insert(config.keys, {
+    key = tostring(i),
+    mods = hyper_mods,
+    action = wezterm.action.Multiple {
+      wezterm.action.SendKey { key = 'a', mods = 'CTRL' },
+      wezterm.action.SendKey { key = tostring(i) },
+    },
+  })
+end
 
 -- Font size ----------------------------------------------------------------
 
