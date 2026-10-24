@@ -11,34 +11,6 @@ local hyper = { "cmd", "ctrl", "alt", "shift" }
 -- Helpers
 --------------------------------------------------
 
-local function launch(app)
-  return function()
-    hs.application.launchOrFocus(app)
-  end
-end
-
--- function focusApp(name)
---   return function()
---     local app = hs.application.find(name)
---
---     if app then
---       app:unhide()
---       app:activate(true)
---
---       for _, win in ipairs(app:allWindows()) do
---         win:unminimize()
---       end
---     else
---       hs.application.launchOrFocus(name)
---     end
---   end
--- end
---
--- local function key(k)
---   return function()
---     hs.eventtap.keyStroke({}, k)
---   end
--- end
 
 local function focusChromeTab(pattern, fallbackUrl)
   fallbackUrl = fallbackUrl or pattern
@@ -92,28 +64,243 @@ local function focusChromeTab(pattern, fallbackUrl)
 end
 
 --------------------------------------------------
--- App Launchers
+-- Dynamic Dock App Launchers
 --------------------------------------------------
+-- Option + 1..9 = Dock apps 1..9
+-- Option + 0    = Dock app 10
+-- Option + grave / § = show the current Dock mapping
+--
+-- The mapping is read from the Dock preferences each time, so reordering
+-- pinned apps in the Dock automatically changes the shortcuts.
 
-hs.hotkey.bind("alt", "1", launch("Google Chrome"))
-hs.hotkey.bind("alt", "2", launch("WezTerm"))
-hs.hotkey.bind("alt", "3", launch("Visual Studio Code"))
-hs.hotkey.bind("alt", "4", launch("Finder"))
-hs.hotkey.bind("alt", "5", launch("Preview"))
-hs.hotkey.bind("alt", "7", launch("Microsoft PowerPoint"))
-hs.hotkey.bind("alt", "8", launch("Microsoft Excel"))
-hs.hotkey.bind("alt", "9", launch("Microsoft Teams"))
-hs.hotkey.bind("alt", "0", launch("Microsoft Outlook"))
+local dockAppsCache = nil
 
--- hs.hotkey.bind({ "alt", "shift" }, "1", focusApp("Google Chrome"))
--- hs.hotkey.bind({ "alt", "shift" }, "2", focusApp("WezTerm"))
--- hs.hotkey.bind({ "alt", "shift" }, "3", focusApp("Visual Studio Code"))
--- hs.hotkey.bind({ "alt", "shift" }, "4", focusApp("Finder"))
--- hs.hotkey.bind({ "alt", "shift" }, "5", focusApp("Preview"))
--- hs.hotkey.bind({ "alt", "shift" }, "7", focusApp("Microsoft PowerPoint"))
--- hs.hotkey.bind({ "alt", "shift" }, "8", focusApp("Microsoft Excel"))
--- hs.hotkey.bind({ "alt", "shift" }, "9", focusApp("Microsoft Teams"))
--- hs.hotkey.bind({ "alt", "shift" }, "0", focusApp("Microsoft Outlook"))
+local function readDockApps()
+  local xml = hs.execute(
+    '/usr/bin/plutil -convert xml1 -o - "$HOME/Library/Preferences/com.apple.dock.plist"',
+    true
+  )
+
+  if not xml or xml == "" then
+    hs.alert.show("Could not read Dock preferences")
+    return {}
+  end
+
+  local ok, dock = pcall(hs.plist.readString, xml)
+  if not ok or type(dock) ~= "table" then
+    hs.alert.show("Could not parse Dock preferences")
+    return {}
+  end
+
+  -- Finder is always shortcut 1, even if its Dock plist entry is represented
+  -- differently by macOS. Remaining shortcuts follow the pinned Dock order.
+  local apps = {
+    { id = "com.apple.finder", name = "Finder" }
+  }
+  local seen = { ["com.apple.finder"] = true }
+
+  for _, item in ipairs(dock["persistent-apps"] or {}) do
+    local tile = item["tile-data"] or {}
+    local bundleID = tile["bundle-identifier"]
+    local label = tile["file-label"]
+
+    -- Count pinned application icons only; skip Finder here because it is
+    -- explicitly inserted at position 1 above.
+    if bundleID and bundleID ~= "" and not seen[bundleID] then
+      seen[bundleID] = true
+      table.insert(apps, {
+        id = bundleID,
+        name = (label and label ~= "" and label) or bundleID
+      })
+    end
+  end
+
+  return apps
+end
+
+-- Cache the parsed Dock mapping so the plutil shell exec doesn't run on every
+-- Alt+number press. The pathwatcher below invalidates the cache whenever the
+-- Dock plist changes (e.g. you reorder pinned apps), so reordering still
+-- propagates automatically.
+local function getDockApps()
+  if not dockAppsCache then
+    dockAppsCache = readDockApps()
+  end
+  return dockAppsCache
+end
+
+hs.pathwatcher
+  .new(os.getenv("HOME") .. "/Library/Preferences/com.apple.dock.plist", function()
+    dockAppsCache = nil
+  end)
+  :start()
+
+local function showDockMapping()
+  local apps = getDockApps()
+  local lines = { "Dock app shortcuts" }
+
+  for i, app in ipairs(apps) do
+    local assignment
+    if i <= 9 then
+      assignment = "⌥" .. tostring(i)
+    elseif i == 10 then
+      assignment = "⌥0"
+    else
+      assignment = "—"
+    end
+    table.insert(lines, string.format("%-5s %s", assignment, app.name))
+  end
+
+  if #apps == 0 then
+    table.insert(lines, "No pinned Dock apps found")
+  elseif #apps > 10 then
+    table.insert(lines, "Only the first 10 apps have shortcuts")
+  end
+
+  hs.alert.closeAll()
+  hs.alert.show(table.concat(lines, "\n"), 5)
+end
+
+local function chooseAppWindow(app, appName)
+  local windows = {}
+  for _, win in ipairs(app:allWindows()) do
+    if win:isStandard() then
+      table.insert(windows, win)
+    end
+  end
+
+  if #windows == 0 then
+    app:activate()
+    hs.alert.show(appName, 0.8)
+    return
+  end
+
+  if #windows == 1 then
+    app:activate()
+    windows[1]:focus()
+    hs.alert.show(appName, 0.8)
+    return
+  end
+
+  local choices = {}
+  for _, win in ipairs(windows) do
+    local title = win:title()
+    if not title or title == "" then
+      title = "Untitled window"
+    end
+    table.insert(choices, {
+      text = title,
+      subText = appName,
+      uuid = tostring(win:id())
+    })
+  end
+
+  local chooser = hs.chooser.new(function(choice)
+    if not choice then return end
+    local win = hs.window.get(tonumber(choice.uuid))
+    if win then
+      local owner = win:application()
+      if owner then owner:activate() end
+      win:focus()
+    end
+  end)
+
+  chooser:choices(choices)
+  chooser:rows(math.min(10, #choices))
+  chooser:show()
+end
+
+
+local function activateDockApp(position, showSelector)
+  local apps = getDockApps()
+  local target = apps[position]
+
+  if not target then
+    hs.alert.show("No app at Dock position " .. position)
+    return
+  end
+
+  local app = hs.application.get(target.id)
+
+  if not app then
+    hs.application.launchOrFocusByBundleID(target.id)
+
+    -- Finder may launch without opening a window.
+    if target.name == "Finder" then
+      hs.timer.doAfter(0.3, function()
+        local finder = hs.application.get(target.id)
+        if finder and #finder:allWindows() == 0 then
+          hs.osascript.applescript([[
+            tell application "Finder"
+              make new Finder window
+              activate
+            end tell
+          ]])
+        end
+      end)
+    end
+
+    hs.alert.show(target.name, 0.8)
+    return
+  end
+
+  app:activate()
+
+  if target.name == "Finder" then
+    hs.timer.doAfter(0.15, function()
+      local finder = hs.application.get(target.id)
+      if finder and #finder:allWindows() == 0 then
+        hs.osascript.applescript([[
+          tell application "Finder"
+            make new Finder window
+            activate
+          end tell
+        ]])
+      end
+
+      if showSelector then
+        local activeApp = hs.application.get(target.id)
+        if activeApp then
+          chooseAppWindow(activeApp, target.name)
+        end
+      end
+    end)
+  elseif showSelector then
+    -- Let macOS activate the app before collecting its windows.
+    hs.timer.doAfter(0.15, function()
+      local activeApp = hs.application.get(target.id)
+      if activeApp then
+        chooseAppWindow(activeApp, target.name)
+      end
+    end)
+  else
+    hs.alert.show(target.name, 0.8)
+  end
+end
+
+-- Option + number activates the app assigned to that Dock position.
+-- It never hides the app.
+for i = 1, 9 do
+  hs.hotkey.bind({ "alt" }, tostring(i), function()
+    activateDockApp(i, false)
+  end)
+end
+
+hs.hotkey.bind({ "alt" }, "0", function()
+  activateDockApp(10, false)
+end)
+
+-- Option + Shift + number opens the window selector for that Dock app.
+for i = 1, 9 do
+  hs.hotkey.bind({ "alt", "shift" }, tostring(i), function()
+    activateDockApp(i, true)
+  end)
+end
+
+hs.hotkey.bind({ "alt", "shift" }, "0", function()
+  activateDockApp(10, true)
+end)
+
 --------------------------------------------------
 -- Chrome bookmarks chooser
 --------------------------------------------------
@@ -124,7 +311,9 @@ local bookmarks_path =
   os.getenv("HOME")
   .. "/Library/Application Support/Google/Chrome/Default/Bookmarks"
 
-local function loadBookmarks()
+local bookmarksCache = nil
+
+local function readBookmarks()
   local file = io.open(bookmarks_path, "r")
 
   if not file then
@@ -164,100 +353,96 @@ local function loadBookmarks()
   return results
 end
 
-local bookmarkChooser = hs.chooser.new(function(choice)
-  if not choice then
-    return
+-- Cache the parsed bookmarks so the full file read + JSON decode doesn't run on
+-- every Hyper+W w. The pathwatcher invalidates the cache when Chrome rewrites
+-- the Bookmarks file (e.g. you add/remove a bookmark).
+local function loadBookmarks()
+  if not bookmarksCache then
+    bookmarksCache = readBookmarks()
   end
+  return bookmarksCache
+end
 
-  --hs.execute("open '" .. choice.url .. "'")
+hs.pathwatcher
+  .new(bookmarks_path, function()
+    bookmarksCache = nil
+  end)
+  :start()
+
+local bookmarkChooser = hs.chooser.new(function(choice)
+  if not choice then return end
   focusChromeTab(choice.url, choice.url)()
-
 end)
 
 bookmarkChooser:searchSubText(true)
 bookmarkChooser:rows(12)
 
+--------------------------------------------------
+-- Web modal + chooser
+--------------------------------------------------
 
---------------------------------------------------
--- Web modal
---------------------------------------------------
+local webActions = {
+  { key = "g", text = "[g] SAP Github",              subText = "github.tools.sap",        fn = focusChromeTab("github.tools.sap", "https://github.tools.sap/Data-Platform-Engineering") },
+  { key = "c", text = "[c] ChatGPT",                 subText = "chatgpt.com",             fn = focusChromeTab("chatgpt.com") },
+  { key = "a", text = "[a] AWS Console",             subText = "console.aws.amazon.com",  fn = focusChromeTab("console.aws.amazon.com", "https://aghki5i5k.accounts400.ondemand.com/saml2/idp/sso?sp=urn:amazon:webservices") },
+  { key = "j", text = "[j] Jira Data Pipeline",      subText = "rapidView=943",           fn = focusChromeTab("https://securityjira.wbs.only.sap/secure/RapidBoard.jspa?rapidView=943&projectKey=DPE") },
+  { key = "l", text = "[l] SAP Launchpad",           subText = "GenAIXL-Display",         fn = focusChromeTab("https://sapit-home-prod-004.launchpad.cfapps.eu10.hana.ondemand.com/site#GenAIXL-Display?mobilestart.tile.hidden=true") },
+  { key = "b", text = "[b] Bookmarks",               subText = "github.tools.sap/D069147/bookmarks", fn = focusChromeTab("https://github.tools.sap/D069147/bookmarks") },
+  { key = "w", text = "[w] Bookmark Chooser",        subText = "Search Chrome bookmarks", fn = function()
+    bookmarkChooser:choices(loadBookmarks())
+    bookmarkChooser:show()
+  end },
+}
+
+local webChooser = hs.chooser.new(function(choice)
+  if not choice then return end
+  for _, item in ipairs(webActions) do
+    if item.key == choice.uuid then
+      item.fn()
+      return
+    end
+  end
+end)
+
+webChooser:searchSubText(true)
+webChooser:rows(#webActions)
 
 local web = hs.hotkey.modal.new()
 
+function web:entered()
+  local choices = {}
+  for _, item in ipairs(webActions) do
+    table.insert(choices, { text = item.text, subText = item.subText, uuid = item.key })
+  end
+  webChooser:choices(choices)
+  webChooser:show()
+end
+
+function web:exited()
+  webChooser:hide()
+end
+
 hs.hotkey.bind(hyper, "w", function()
   web:enter()
-  hs.alert.show("Web")
 end)
 
 web:bind({}, "escape", function()
   web:exit()
 end)
 
-web:bind({}, "g", function()
-  focusChromeTab(
-    "google.com"
-  )()
-
-  web:exit()
-end)
-
-web:bind({}, "l", function()
-  focusChromeTab(
-    "https://sapit-home-prod-004.launchpad.cfapps.eu10.hana.ondemand.com/site#GenAIXL-Display?mobilestart.tile.hidden=true"
-  )()
-
-  web:exit()
-end)
-
--- w c -> ChatGPT
-web:bind({}, "c", function()
-  focusChromeTab(
-    "chatgpt.com"
-  )()
-
-  web:exit()
-end)
-
-web:bind({}, "j", function()
-  focusChromeTab(
-    --"Data Pipeline Board",
-    "https://securityjira.wbs.only.sap/secure/RapidBoard.jspa?rapidView=508&projectKey=DPE#"
-  )()
-
-  web:exit()
-end)
-
-web:bind({"shift"}, "j", function()
-  focusChromeTab(
-    "https://securityjira.wbs.only.sap/secure/RapidBoard.jspa?rapidView=527&projectKey=DPE"
-  )()
-
-  web:exit()
-end)
-
-web:bind({}, "a", function()
-  focusChromeTab(
-    "console.aws.amazon.com",
-    "https://aghki5i5k.accounts400.ondemand.com/saml2/idp/sso?sp=urn:amazon:webservices"
-  )()
-
-  web:exit()
-end)
-
-web:bind({}, "b", function()
-  focusChromeTab(
-    "https://github.tools.sap/D069147/bookmarks"
-  )()
-
-  web:exit()
-end)
-
-web:bind({}, "w", function()
-  bookmarkChooser:choices(loadBookmarks())
-  bookmarkChooser:show()
-
-  web:exit()
-end)
+for _, item in ipairs(webActions) do
+  local mods = {}
+  local k = item.key
+  if k == k:upper() and k ~= k:lower() then
+    mods = { "shift" }
+    k = k:lower()
+  end
+  local fn = item.fn
+  web:bind(mods, k, function()
+    web:exit()
+    fn()
+  end)
+end
 
 --------------------------------------------------
 -- Sesh / tmux launcher
@@ -284,22 +469,11 @@ hs.hotkey.bind(hyper, "s", function()
 end)
 
 --------------------------------------------------
--- Hyper+b -> bookmark chooser
---------------------------------------------------
---
--- hs.hotkey.bind(hyper, "b", function()
---   bookmarkChooser:choices(loadBookmarks())
---   bookmarkChooser:show()
--- end)
---
-
---------------------------------------------------
 -- Hyper+t -> Teams status changer
 --------------------------------------------------
-local teamsModal = hs.hotkey.modal.new(hyper, "t")
 
 local function typeKeys(text, delay)
-    delay = delay or 0.03
+    delay = delay or 0.005
 
     for i = 1, #text do
         local char = text:sub(i, i)
@@ -311,143 +485,142 @@ local function typeKeys(text, delay)
 end
 
 local function teamsStatus(status)
+    local app = hs.application.find("Microsoft Teams")
+    local alreadyFocused = app and app:isFrontmost()
+
     hs.application.launchOrFocus("Microsoft Teams")
 
-    hs.timer.doAfter(0.5, function()
+    local focusDelay = alreadyFocused and 0.05 or 0.5
 
-        -- focus Teams command/search bar
+    hs.timer.doAfter(focusDelay, function()
         hs.eventtap.keyStroke({"cmd"}, "e")
 
-        hs.timer.doAfter(0.1, function()
-
-            -- clear existing text
+        hs.timer.doAfter(0.05, function()
             hs.eventtap.keyStroke({"cmd"}, "a")
+            hs.eventtap.keyStroke({}, "delete")
+            hs.eventtap.keyStroke({}, "/")
 
-            hs.timer.doAfter(0.02, function()
-                hs.eventtap.keyStroke({}, "delete")
+            hs.timer.doAfter(0.05, function()
+                typeKeys(status)
 
-                hs.timer.doAfter(0.02, function()
-
-                    -- open command mode
-                    hs.eventtap.keyStroke({}, "/")
-
-                    hs.timer.doAfter(0.02, function()
-
-                        typeKeys(status)
-
-                        hs.timer.doAfter(#status * 0.02 + 0.02, function()
-                            hs.eventtap.keyStroke({}, "return")
-                        end)
-                    end)
+                hs.timer.doAfter(#status * 0.005 + 0.01, function()
+                    hs.eventtap.keyStroke({}, "return")
                 end)
             end)
         end)
     end)
 end
 
-local function bindStatus(key, status)
-    teamsModal:bind({}, key, function()
-        teamsModal:exit()
-        teamsStatus(status)
-    end)
+local teamsActions = {
+  { key = "o", text = "[o] Offline",   status = "offline" },
+  { key = "a", text = "[a] Available", status = "available" },
+  { key = "d", text = "[d] DND",       status = "dnd" },
+  { key = "b", text = "[b] Busy",      status = "busy" },
+  { key = "r", text = "[r] BRB",       status = "brb" },
+  { key = "w", text = "[w] Away",      status = "away" },
+}
+
+local sharingBarHidden = false
+local sharingBarFrame = nil
+
+local function toggleSharingBar()
+  local app = hs.application.find("Microsoft Teams")
+  if not app then
+    hs.alert.show("Teams not running")
+    return
+  end
+  for _, win in ipairs(app:allWindows()) do
+    local title = win:title()
+    if title and title:match("Sharing control bar") then
+      if sharingBarHidden then
+        if sharingBarFrame then win:setFrame(sharingBarFrame) end
+        sharingBarHidden = false
+        hs.alert.show("Sharing bar restored")
+      else
+        sharingBarFrame = win:frame()
+        win:setFrame({ x = -2000, y = 100, w = sharingBarFrame.w, h = sharingBarFrame.h })
+        sharingBarHidden = true
+        hs.alert.show("Sharing bar hidden")
+      end
+      return
+    end
+  end
+  hs.alert.show("Sharing bar not found")
 end
 
-bindStatus("o", "offline")
-bindStatus("a", "available")
-bindStatus("d", "dnd")
-bindStatus("b", "busy")
-bindStatus("r", "brb")
-bindStatus("w", "away")
-
-teamsModal:bind({}, "escape", function()
-    teamsModal:exit()
+local teamsChooser = hs.chooser.new(function(choice)
+  if not choice then return end
+  if choice.uuid == "h" then
+    toggleSharingBar()
+    return
+  end
+  for _, item in ipairs(teamsActions) do
+    if item.key == choice.uuid then
+      teamsStatus(item.status)
+      return
+    end
+  end
 end)
 
+teamsChooser:rows(#teamsActions + 1)
+
+local teamsModal = hs.hotkey.modal.new(hyper, "t")
+
 function teamsModal:entered()
-    hs.alert.show("Teams")
+  local choices = {}
+  for _, item in ipairs(teamsActions) do
+    table.insert(choices, { text = item.text, uuid = item.key })
+  end
+  table.insert(choices, { text = "[h] Hide/restore sharing bar", uuid = "h" })
+  teamsChooser:choices(choices)
+  teamsChooser:show()
 end
 
 function teamsModal:exited()
-    hs.alert.closeAll()
+  teamsChooser:hide()
 end
 
-local sharingBarHidden = false
-local sharingBarFrame = nil
+teamsModal:bind({}, "escape", function()
+  teamsModal:exit()
+end)
 
-local sharingBarHidden = false
-local sharingBarFrame = nil
+for _, item in ipairs(teamsActions) do
+  local status = item.status
+  teamsModal:bind({}, item.key, function()
+    teamsModal:exit()
+    teamsStatus(status)
+  end)
+end
 
 teamsModal:bind({}, "h", function()
-
-    local app = hs.application.find("Microsoft Teams")
-    if not app then return end
-
-    for _, win in ipairs(app:allWindows()) do
-        local title = win:title()
-
-        if title and title:match("Sharing control bar") then
-
-            if sharingBarHidden then
-                -- restore original position
-                if sharingBarFrame then
-                    win:setFrame(sharingBarFrame)
-                end
-
-                sharingBarHidden = false
-                hs.alert.show("Sharing bar restored")
-
-            else
-                -- remember original position
-                sharingBarFrame = win:frame()
-
-                -- absolute hidden position
-                win:setFrame({
-                    x = -2000,
-                    y = 100,
-                    w = sharingBarFrame.w,
-                    h = sharingBarFrame.h
-                })
-
-                sharingBarHidden = true
-                hs.alert.show("Sharing bar hidden")
-            end
-
-            teamsModal:exit()
-            return
-        end
-    end
-
-    hs.alert.show("Sharing bar not found")
-    teamsModal:exit()
+  teamsModal:exit()
+  toggleSharingBar()
 end)
 
 --------------------------------------------------
 -- Show Hotkeys
 --------------------------------------------------
 local hotkeys = {
-    {"Alt+1", "Google Chrome"},
-    {"Alt+2", "WezTerm"},
-    {"Alt+3", "Visual Studio Code"},
-    {"Alt+4", "Finder"},
-    {"Alt+5", "Preview"},
-    {"Alt+7", "Microsoft PowerPoint"},
-    {"Alt+8", "Microsoft Excel"},
-    {"Alt+9", "Microsoft Teams"},
-    {"Alt+0", "Microsoft Outlook"},
+    {"Alt+1..9 / 0", "Activate Dock app by position"},
+    {"Alt+Shift+1..9 / 0", "Choose a window for Dock app"},
+    {"Alt+grave / §", "Show Dock app assignments"},
     {"Hyper+S", "Sesh / tmux Create New Session"},
     {"Hyper+Space", "Sesh / tmux"},
-    {"Hyper+W a", "AWS SSO"},
-    {"Hyper+W b", "Chrome Bookmarks"},
-    {"Hyper+W g", "ChatGPT"},
-    {"Hyper+W j", "Jira Data Pipeline Board"},
-    {"Hyper+W Shift+j", "Jira Security Analytics Board"},
+    {"Hyper+W g", "Google"},
+    {"Hyper+W c", "ChatGPT"},
     {"Hyper+W a", "AWS Console"},
+    {"Hyper+W j", "Jira Data Pipeline Board"},
+    {"Hyper+W J", "Jira Security Analytics Board"},
+    {"Hyper+W l", "SAP Launchpad"},
+    {"Hyper+W b", "Bookmarks"},
+    {"Hyper+W w", "Bookmark Chooser"},
     {"Hyper+T o", "Teams: Offline"},
     {"Hyper+T a", "Teams: Available"},
     {"Hyper+T d", "Teams: DND"},
     {"Hyper+T b", "Teams: Busy"},
     {"Hyper+T r", "Teams: BRB"},
     {"Hyper+T w", "Teams: Away"},
+    {"Hyper+T h", "Teams: Hide/restore sharing bar"},
     {"Hyper+r",   "Reload Hammerspoon"},
     {"Hyper+v", "TMUX vertical split"},
     {"Hyper+b", "TMUX horizontal split"},
@@ -493,20 +666,18 @@ local function showHotkeys()
     cheatSheetModal:enter()
 end
 
--- close cheatsheet only while modal is active
 cheatSheetModal:bind({}, "escape", function()
     hs.alert.closeAll()
     cheatSheetModal:exit()
 end)
 
--- Hyper + ?
-hs.hotkey.bind(
-    { "cmd" },
-    "h",
-    showHotkeys
-)
+hs.hotkey.bind({ "cmd" }, "h", showHotkeys)
 
-
+-- Option + § / `: bind both layout variants directly. A plain hotkey bind only
+-- fires on this exact combo, unlike a global keyDown eventtap which would run a
+-- Lua callback on every keystroke typed system-wide.
+hs.hotkey.bind({ "alt" }, "§", showDockMapping)
+hs.hotkey.bind({ "alt" }, "`", showDockMapping)
 
 --------------------------------------------------
 -- Reload Hammerspoon
@@ -534,7 +705,18 @@ hs.pathwatcher
   :start()
 
 --------------------------------------------------
+-- Load difm global mute shortcut
+--------------------------------------------------
+dofile(hs.configdir .. "/difm.lua")
+
+--------------------------------------------------
+-- Load display configuration
+--------------------------------------------------
+require("display")
+
+--------------------------------------------------
 -- Startup Notification
 --------------------------------------------------
 
 hs.alert.show("Hammerspoon loaded")
+

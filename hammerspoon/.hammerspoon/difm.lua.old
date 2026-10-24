@@ -1,0 +1,77 @@
+-- DI.FM background-tab mute/unmute
+-- Global hotkey: Ctrl+Alt+Space
+--
+-- The Chrome extension's command is Alt+Shift+M.
+-- Hammerspoon temporarily focuses the DI.FM tab, sends the command,
+-- then restores the app/window/tab you were using.
+
+local hotkeyMods = {"ctrl", "alt"}
+local hotkeyKey = "space"
+
+local function toggleDIFM()
+    local chrome = hs.application.get("Google Chrome")
+    if not chrome then
+        hs.alert.show("Google Chrome is not running")
+        return
+    end
+
+    local oldApp = hs.application.frontmostApplication()
+    local oldWindow = chrome and chrome:focusedWindow()
+
+    local script = [[
+        tell application "Google Chrome"
+            set hits to {}
+            repeat with w in windows
+                repeat with t in tabs of w
+                    set u to URL of t
+                    if u contains "di.fm" then
+                        set end of hits to {w, t}
+                    end if
+                end repeat
+            end repeat
+
+            if (count of hits) is 0 then
+                return "NOT_FOUND"
+            end if
+
+            -- Prefer a DI.FM tab in a window that is already frontmost;
+            -- otherwise use the first match.
+            set targetWindow to item 1 of item 1 of hits
+            set targetTab to item 2 of item 1 of hits
+
+            repeat with h in hits
+                set w2 to item 1 of h
+                set t2 to item 2 of h
+                if active tab index of w2 is (index of t2) then
+                    set targetWindow to w2
+                    set targetTab to t2
+                    exit repeat
+                end if
+            end repeat
+
+            set index of targetWindow to 1
+            set active tab index of targetWindow to (index of targetTab)
+            activate
+            return "OK"
+        end tell
+    ]]
+
+    local result = hs.osascript.applescript(script)
+
+    if not result or result[1] ~= "OK" then
+        hs.alert.show("No DI.FM tab found")
+        return
+    end
+
+    -- Chrome's extension command.
+    hs.timer.doAfter(0.08, function()
+        hs.eventtap.keyStroke({"alt", "shift"}, "m", 0)
+
+        -- Restore whatever we were doing.
+        hs.timer.doAfter(0.08, function()
+            if oldApp then oldApp:activate() end
+        end)
+    end)
+end
+
+hs.hotkey.bind(hotkeyMods, hotkeyKey, toggleDIFM)

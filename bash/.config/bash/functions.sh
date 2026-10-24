@@ -132,7 +132,7 @@ if [[ -z ${BASH_FUNCTIONS_SH_LOADED:-} ]]; then
     ) || return
 
     action=$(
-      printf 'edit\nopen\ncopy\nmove\nextract\ncat\nreveal\n' |
+      printf 'edit\nopen\ncopy\nmove\nextract\ncat\nreveal\npath\nclipboard\n' |
         fzf --prompt='Action > '
     ) || return
 
@@ -199,6 +199,18 @@ if [[ -z ${BASH_FUNCTIONS_SH_LOADED:-} ]]; then
         open -R "$target"
       elif command -v xdg-open >/dev/null 2>&1; then
         xdg-open "$(dirname "$target")"
+      fi
+      ;;
+    path)
+      printf '%s' "$target" | pbcopy
+      printf 'Copied to clipboard: %s\n' "$target"
+      ;;
+    clipboard)
+      if [[ -f "$target" ]]; then
+        pbcopy < "$target"
+        echo "Copied contents of: $target"
+      else
+        echo "Not a regular file: $target" >&2
       fi
       ;;
     esac
@@ -296,4 +308,10 @@ tell application "Google Chrome"
 end tell
 EOF
 }
+
+gc() {
+  local branch=${1:--}
+  git checkout "$branch"
+}
 fi
+
