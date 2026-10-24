@@ -33,7 +33,8 @@ done
 if [[ -n "$bash_platform" ]]; then
   for bash_config in \
     "$bash_config_dir/env-$bash_platform.sh" \
-    "$bash_config_dir/aliases-$bash_platform.sh"; do
+    "$bash_config_dir/aliases-$bash_platform.sh" \
+    "$bash_config_dir/functions-$bash_platform.sh"; do
     # shellcheck source=/dev/null
     [[ -r "$bash_config" ]] && source "$bash_config"
   done
