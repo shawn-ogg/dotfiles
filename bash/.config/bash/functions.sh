@@ -69,12 +69,18 @@ if [[ -z ${BASH_FUNCTIONS_SH_LOADED:-} ]]; then
     "$_bash_config_dir/env.sh"
     "$_bash_config_dir/env-macos.sh"
     "$_bash_config_dir/env-linux.sh"
-    "$_bash_config_dir/functions-macos.sh"
-    "$_bash_config_dir/functions-linux.sh"
     "$_bash_config_dir/env.secrets.sh"
     "$_bash_config_dir/aliases.sh"
     "$_bash_config_dir/aliases.local.sh"
   )
+  case "$(uname -s)" in
+  Darwin)
+    bash_watched_files+=("$_bash_config_dir/functions-macos.sh")
+    ;;
+  Linux)
+    bash_watched_files+=("$_bash_config_dir/functions-linux.sh")
+    ;;
+  esac
   declare -Ag bash_watched_mtimes=()
 
   unset _bash_config_dir
