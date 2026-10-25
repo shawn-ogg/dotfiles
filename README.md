@@ -55,3 +55,19 @@ Machine-local or secret overrides should go in gitignored files under `.config/b
 - `local.sh`
 
 Those files are sourced automatically when present, but are not tracked by git.
+
+
+## Optional SAP work integration
+
+The SAP calendar status script is kept in the separate `sap/` Stow package. It is
+not enabled by default. On a work machine, install it with:
+
+```bash
+cd ~/dotfiles
+stow sap
+```
+
+Set `ENABLE_SAP_INTEGRATION=1` in the gitignored
+`~/.config/bash/env.local.sh` to enable the calendar status display. Leave it
+unset or set it to `0` to disable it. The script reads the SAP wiki bearer token
+from `WAT`; keep that token in your private environment/secrets file, never in Git.

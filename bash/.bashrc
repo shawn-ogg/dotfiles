@@ -50,6 +50,13 @@ for bash_config in \
   [[ -r "$bash_config" ]] && source "$bash_config"
 done
 
+# Optional SAP work integration. Set ENABLE_SAP_INTEGRATION=1 in the
+# gitignored ~/.config/bash/env.local.sh to enable it.
+export ENABLE_SAP_INTEGRATION="${ENABLE_SAP_INTEGRATION:-0}"
+if command -v tmux >/dev/null 2>&1 && tmux list-sessions >/dev/null 2>&1; then
+  tmux set-environment -g ENABLE_SAP_INTEGRATION "$ENABLE_SAP_INTEGRATION" 2>/dev/null || true
+fi
+
 if [[ -r "$bash_config_dir/prompt.sh" ]]; then
   # shellcheck source=/dev/null
   source "$bash_config_dir/prompt.sh"
