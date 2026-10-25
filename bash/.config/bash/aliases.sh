@@ -1,6 +1,5 @@
 # shellcheck shell=bash
 
-alias refresh='source ~/.bash_profile'
 alias bsconf='vim ~/.config/bash; refresh'
 alias tmconf='vim ~/.tmux.conf'
 alias nvconf='vim ~/.config/nvim'
