@@ -4,6 +4,12 @@ local act = wezterm.action
 local config = wezterm.config_builder()
 
 local is_macos = wezterm.target_triple:find("darwin") ~= nil
+local is_windows = wezterm.target_triple:find("windows") ~= nil
+
+-- Start in the existing Ubuntu WSL distribution on Windows.
+if is_windows then
+  config.default_domain = "WSL:Ubuntu"
+end
 
 local leader_mod = is_macos and 'CMD' or 'SUPER'
 
@@ -50,6 +56,20 @@ if is_macos then
   table.insert(config.keys, {
     key = 'v',
     mods = 'CMD',
+    action = act.PasteFrom 'Clipboard',
+  })
+
+elseif is_windows then
+  -- Windows terminal conventions: keep Ctrl+c available for SIGINT.
+  table.insert(config.keys, {
+    key = 'c',
+    mods = 'CTRL|SHIFT',
+    action = act.CopyTo 'ClipboardAndPrimarySelection',
+  })
+
+  table.insert(config.keys, {
+    key = 'v',
+    mods = 'CTRL|SHIFT',
     action = act.PasteFrom 'Clipboard',
   })
 
