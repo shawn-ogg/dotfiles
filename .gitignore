@@ -2,3 +2,7 @@ tmux/.config/tmux/plugins/
 bash/.config/bash/*.local.sh
 bash/.config/bash/secrets.sh
 bash/.config/bash/env.secrets.sh
+# Editor/application backups and exported local state
+**/*.bak
+**/*.old
+**/automatic_backups/
