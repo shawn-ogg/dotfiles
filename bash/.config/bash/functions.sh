@@ -1,18 +1,8 @@
 # shellcheck shell=bash
 
-if [[ -z ${BASH_FUNCTIONS_SH_LOADED:-} ]]; then
-  BASH_FUNCTIONS_SH_LOADED=1
-
-  bash_file_mtime() {
-    if [[ ! -e "$1" ]]; then
-      return 1
-    fi
-
-    if stat -f %m "$1" >/dev/null 2>&1; then
-      stat -f %m "$1"
-    else
-      stat -c %Y "$1"
-    fi
+  bash_file_signature() {
+    [[ -r "$1" ]] || { printf 'missing'; return 0; }
+    cksum < "$1"
   }
 
   bash_append_prompt_command() {
@@ -67,32 +57,83 @@ if [[ -z ${BASH_FUNCTIONS_SH_LOADED:-} ]]; then
 
   bash_watched_files=(
     "$_bash_config_dir/env.sh"
-    "$_bash_config_dir/env-macos.sh"
-    "$_bash_config_dir/env-linux.sh"
-    "$_bash_config_dir/env.secrets.sh"
     "$_bash_config_dir/aliases.sh"
-    "$_bash_config_dir/aliases.local.sh"
+    "$_bash_config_dir/functions.sh"
   )
-  declare -Ag bash_watched_mtimes=()
+  if [[ -n "${bash_platform:-}" ]]; then
+    bash_watched_files+=(
+      "$_bash_config_dir/env-$bash_platform.sh"
+      "$_bash_config_dir/aliases-$bash_platform.sh"
+    )
+  fi
+  bash_watched_files+=(
+    "$_bash_config_dir/env.local.sh"
+    "$_bash_config_dir/aliases.local.sh"
+    "$_bash_config_dir/functions.local.sh"
+    "$_bash_config_dir/prompt.local.sh"
+    "$_bash_config_dir/env.secrets.sh"
+    "$_bash_config_dir/local.sh"
+  )
+  declare -a bash_watched_signatures
 
-  unset _bash_config_dir
+  bash_update_config_signatures() {
+    local i file
+    for i in "${!bash_watched_files[@]}"; do
+      file="${bash_watched_files[$i]}"
+      bash_watched_signatures[$i]="$(bash_file_signature "$file")"
+    done
+  }
+
+  bash_reload_config() {
+    local file
+    for file in "${bash_watched_files[@]}"; do
+      [[ -r "$file" ]] || continue
+      # shellcheck source=/dev/null
+      source "$file" || {
+        printf 'refresh: failed to source %s\n' "$file" >&2
+        return 1
+      }
+    done
+    bash_update_config_signatures
+    if [[ -n "${ENABLE_SAP_INTEGRATION:-}" ]] &&
+      command -v tmux >/dev/null 2>&1 &&
+      tmux list-sessions >/dev/null 2>&1; then
+      tmux set-environment -g ENABLE_SAP_INTEGRATION "$ENABLE_SAP_INTEGRATION" 2>/dev/null || true
+    fi
+    printf 'Bash configuration refreshed.\n'
+  }
+
+  refresh() {
+    bash_reload_config
+  }
 
   reload_config_if_needed_and_append_history() {
-    local file
-    local mtime
-
-    for file in "${bash_watched_files[@]}"; do
-      mtime=$(bash_file_mtime "$file" 2>/dev/null) || continue
-      if [[ ${bash_watched_mtimes["$file"]:-} != "$mtime" ]]; then
-        # shellcheck source=/dev/null
-        source "$file"
-        bash_watched_mtimes["$file"]="$mtime"
+    local i file signature
+    for i in "${!bash_watched_files[@]}"; do
+      file="${bash_watched_files[$i]}"
+      signature="$(bash_file_signature "$file")"
+      if [[ ${bash_watched_signatures[$i]:-} != "$signature" ]]; then
+        if [[ -r "$file" ]]; then
+          # shellcheck source=/dev/null
+          if source "$file"; then
+            bash_watched_signatures[$i]="$(bash_file_signature "$file")"
+            printf 'Reloaded Bash config: %s\n' "${file##*/}" >&2
+          else
+            printf 'Auto-refresh failed: %s\n' "$file" >&2
+          fi
+        else
+          bash_watched_signatures[$i]="$signature"
+        fi
       fi
     done
 
     history -a
     history 1 >>~/.bash_history_global
   }
+
+  bash_update_config_signatures
+
+  unset _bash_config_dir
 
   getlast() {
     fc -ln "$1" "$1" | sed '1s/^[[:space:]]*//'
@@ -260,5 +301,3 @@ gc() {
   local branch=${1:--}
   git checkout "$branch"
 }
-fi
-
