@@ -64,4 +64,3 @@ fi
 
 unset bash_config
 unset bash_config_dir
-unset bash_platform

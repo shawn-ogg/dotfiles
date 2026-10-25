@@ -71,3 +71,15 @@ Set `ENABLE_SAP_INTEGRATION=1` in the gitignored
 `~/.config/bash/env.local.sh` to enable the calendar status display. Leave it
 unset or set it to `0` to disable it. The script reads the SAP wiki bearer token
 from `WAT`; keep that token in your private environment/secrets file, never in Git.
+
+
+## Refreshing Bash configuration
+
+Bash shells check the loaded Bash config files at each prompt and automatically
+source files that have changed. This is portable across macOS and Linux and
+does not require a filesystem watcher daemon.
+
+Run `refresh` to force-reload environment, aliases, functions, platform-specific
+settings, and local overrides in the current shell. Config changes are detected
+using POSIX `cksum`, so edits made within the same second are still detected.
+A new shell is still needed for changes that must be inherited by other processes.
