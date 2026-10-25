@@ -2,13 +2,5 @@
 name = "dotfiles"
 path = "~/dotfiles"
 
-[[session]]
-name = "notes"
-path = "~/work/notes"
-
-[[session]]
-name = "swamp"
-path = "~/swamp"
-
 [default_session]
 startup_command = "nvim"
