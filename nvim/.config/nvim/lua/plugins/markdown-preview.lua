@@ -12,7 +12,7 @@ return {
       "MarkdownPreviewStop",
     },
 
-    build = "cd app && npm install",
+    build = "cd app && corepack yarn install --frozen-lockfile",
 
     init = function()
       vim.g.mkdp_auto_start = 0
