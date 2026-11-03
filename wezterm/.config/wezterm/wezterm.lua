@@ -9,6 +9,15 @@ local is_windows = wezterm.target_triple:find("windows") ~= nil
 -- Start in the existing Ubuntu WSL distribution on Windows.
 if is_windows then
   config.default_domain = "WSL:Ubuntu"
+
+  -- Keep PowerShell available as a native Windows shell.
+  config.launch_menu = {
+    {
+      label = "PowerShell",
+      args = { "powershell.exe", "-NoLogo" },
+      domain = { DomainName = "local" },
+    },
+  }
 end
 
 local leader_mod = is_macos and 'CMD' or 'SUPER'
@@ -246,6 +255,30 @@ table.insert(config.keys, {
   mods = leader_mod,
   action = act.ResetFontSize,
 })
+
+-- Native Windows PowerShell ------------------------------------------------
+
+if is_windows then
+  -- Ctrl+Alt+p -> PowerShell in a new tab.
+  table.insert(config.keys, {
+    key = 'p',
+    mods = 'CTRL|ALT',
+    action = act.SpawnCommandInNewTab {
+      args = { 'powershell.exe', '-NoLogo' },
+      domain = 'local',
+    },
+  })
+
+  -- Ctrl+Alt+Shift+p -> PowerShell in a new window.
+  table.insert(config.keys, {
+    key = 'p',
+    mods = 'CTRL|ALT|SHIFT',
+    action = act.SpawnCommandInNewWindow {
+      args = { 'powershell.exe', '-NoLogo' },
+      domain = 'local',
+    },
+  })
+end
 
 -- New window ---------------------------------------------------------------
 
