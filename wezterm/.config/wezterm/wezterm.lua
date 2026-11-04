@@ -41,6 +41,25 @@ config.keys = {
   {key="Enter", mods="SHIFT", action=wezterm.action{SendString="\x1b\n"}},
 }
 
+-- Windows shell switcher ---------------------------------------------------
+
+if is_windows then
+  config.launch_menu = {
+    {
+      label = 'PowerShell',
+      args = { 'powershell.exe', '-NoLogo' },
+      -- The default domain is WSL:Ubuntu; PowerShell must run on Windows.
+      domain = { DomainName = 'local' },
+    },
+  }
+
+  table.insert(config.keys, {
+    key = 's',
+    mods = 'CTRL|SHIFT',
+    action = act.ShowLauncher,
+  })
+end
+
 -- Clipboard ----------------------------------------------------------------
 
 if is_macos then
