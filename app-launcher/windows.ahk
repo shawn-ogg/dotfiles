@@ -1,6 +1,5 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force
-#UseHook True  ; Force hook-based interception of Win+number shortcuts.
 
 ; Win+1..9 and Win+0 select the corresponding configured application.
 ; This intentionally replaces Windows' native Win+number taskbar behaviour:
@@ -43,13 +42,13 @@ ActivateConfiguredApp(position) {
     }
 }
 
-#1::ActivateConfiguredApp("1")
-#2::ActivateConfiguredApp("2")
-#3::ActivateConfiguredApp("3")
-#4::ActivateConfiguredApp("4")
-#5::ActivateConfiguredApp("5")
-#6::ActivateConfiguredApp("6")
-#7::ActivateConfiguredApp("7")
-#8::ActivateConfiguredApp("8")
-#9::ActivateConfiguredApp("9")
-#0::ActivateConfiguredApp("0")
+$#1::ActivateConfiguredApp("1")
+$#2::ActivateConfiguredApp("2")
+$#3::ActivateConfiguredApp("3")
+$#4::ActivateConfiguredApp("4")
+$#5::ActivateConfiguredApp("5")
+$#6::ActivateConfiguredApp("6")
+$#7::ActivateConfiguredApp("7")
+$#8::ActivateConfiguredApp("8")
+$#9::ActivateConfiguredApp("9")
+$#0::ActivateConfiguredApp("0")
