@@ -133,13 +133,19 @@ local function activateConfiguredApp(position)
   end
 
   if not app then
-    hs.application.launchOrFocusByBundleID(bundleID)
-  else
-    app:activate()
-    local mainWindow = app:mainWindow()
-    if mainWindow then
-      mainWindow:focus()
+    -- Wait for the application to launch and create its first window. This
+    -- avoids returning from the shortcut before slower apps are ready.
+    app = hs.application.open(bundleID, 5, true)
+    if not app then
+      hs.alert.show("Could not launch " .. appName .. " (" .. bundleID .. ")")
+      return
     end
+  end
+
+  app:activate()
+  local mainWindow = app:mainWindow()
+  if mainWindow then
+    mainWindow:focus()
   end
 
   -- Finder can be running without a window. Selecting it should still produce
