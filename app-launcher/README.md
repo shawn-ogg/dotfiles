@@ -1,32 +1,11 @@
-# Shared application launcher
+# macOS application launcher
 
-The application shortcuts are defined once in `apps.ini` and consumed by
-Hammerspoon on macOS and AutoHotkey v2 on Windows.
+Application shortcuts are defined in `apps.ini` and consumed by Hammerspoon.
 
 - `1` through `9` select positions 1 through 9.
 - `0` selects position 10.
-- Omit the platform key entirely to leave that position unassigned.
-- macOS values are application bundle identifiers.
-- Windows values are executable names or full executable paths.
+- Each `macos` value is an application bundle identifier.
 
-The launcher is deliberately an absolute selector: if the target application is
-already frontmost, the shortcut does nothing. Otherwise it activates an existing
-window (restoring it if minimised), or launches the application if no window is
-open. It never minimises or cycles through an application's windows.
+Windows uses the native taskbar shortcuts (`Win+1` through `Win+0`) and does not need a separate launcher.
 
-## Windows
-
-Run `windows.ahk` with AutoHotkey v2. Add it to the user's Startup folder or
-create a shortcut to it there:
-
-```powershell
-explorer.exe shell:startup
-```
-
-The script resolves `apps.ini` relative to its own location, so keep the
-repository directory structure intact.
-
-## macOS
-
-The Hammerspoon configuration reads `apps.ini` from
-`~/dotfiles/app-launcher/apps.ini`. Reload Hammerspoon after changing it.
+Hammerspoon reads `apps.ini` from `~/dotfiles/app-launcher/apps.ini`. Reload Hammerspoon after changing it.
