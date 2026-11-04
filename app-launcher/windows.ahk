@@ -1,6 +1,5 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force
-#InstallKeybdHook
 #UseHook True  ; Force hook-based interception of Win+number shortcuts.
 
 ; Win+1..9 and Win+0 select the corresponding configured application.
