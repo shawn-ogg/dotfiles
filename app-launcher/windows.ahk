@@ -19,7 +19,7 @@ ActivateConfiguredApp(position) {
     ; If this application already owns the foreground window, leave it alone.
     try {
         activeProcess := WinGetProcessName("A")
-        if (StrCompare(activeProcess, executable, true) = 0)
+        if (StrCompare(activeProcess, executable, false) = 0)
             return
     }
 
