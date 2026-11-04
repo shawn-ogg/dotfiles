@@ -12,10 +12,13 @@ ActivateConfiguredApp(position) {
     global AppConfigPath
     configPath := AppConfigPath
     appName := IniRead(configPath, position, "name", position)
-    executable := Trim(IniRead(configPath, position, "windows", "-"))
-
-    if (executable = "" || executable = "-")
+    launchTarget := Trim(IniRead(configPath, position, "windows", ""))
+    if (launchTarget = "" || launchTarget = "-")
         return
+
+    ; Launch using the configured path; match windows by executable name.
+    executable := RegExReplace(launchTarget, "^.*\\")
+    executable := Trim(executable, '"')
 
     ; If this application already owns the foreground window, leave it alone.
     try {
@@ -33,7 +36,7 @@ ActivateConfiguredApp(position) {
 
     ; No existing window: launch the configured executable.
     try {
-        Run(executable)
+        Run(launchTarget)
     } catch as err {
         MsgBox("Could not launch " appName " (" executable ").`n`n" err.Message,
             "Application launcher", "Iconx")
