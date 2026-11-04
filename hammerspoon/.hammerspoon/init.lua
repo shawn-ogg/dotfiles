@@ -64,191 +64,89 @@ local function focusChromeTab(pattern, fallbackUrl)
 end
 
 --------------------------------------------------
--- Dynamic Dock App Launchers
+-- Shared application launcher
 --------------------------------------------------
--- Option + 1..9 = Dock apps 1..9
--- Option + 0    = Dock app 10
--- Option + grave / § = show the current Dock mapping
---
--- The mapping is read from the Dock preferences each time, so reordering
--- pinned apps in the Dock automatically changes the shortcuts.
+-- Option + 1..9 selects configured apps 1..9; Option + 0 selects app 10.
+-- The shared mapping is maintained in ~/dotfiles/app-launcher/apps.ini.
+-- Empty ("-") platform entries are intentionally left unbound.
 
-local dockAppsCache = nil
+local appConfigPath = os.getenv("HOME") .. "/dotfiles/app-launcher/apps.ini"
+local appConfig = {}
 
-local function readDockApps()
-  local xml = hs.execute(
-    '/usr/bin/plutil -convert xml1 -o - "$HOME/Library/Preferences/com.apple.dock.plist"',
-    true
-  )
+local function trim(value)
+  return (value:gsub("^%s+", ""):gsub("%s+$", ""))
+end
 
-  if not xml or xml == "" then
-    hs.alert.show("Could not read Dock preferences")
+local function readAppConfig()
+  local file = io.open(appConfigPath, "r")
+  if not file then
+    hs.alert.show("Could not open " .. appConfigPath)
     return {}
   end
 
-  local ok, dock = pcall(hs.plist.readString, xml)
-  if not ok or type(dock) ~= "table" then
-    hs.alert.show("Could not parse Dock preferences")
-    return {}
-  end
+  local config = {}
+  local section = nil
 
-  -- Finder is always shortcut 1, even if its Dock plist entry is represented
-  -- differently by macOS. Remaining shortcuts follow the pinned Dock order.
-  local apps = {
-    { id = "com.apple.finder", name = "Finder" }
-  }
-  local seen = { ["com.apple.finder"] = true }
-
-  for _, item in ipairs(dock["persistent-apps"] or {}) do
-    local tile = item["tile-data"] or {}
-    local bundleID = tile["bundle-identifier"]
-    local label = tile["file-label"]
-
-    -- Count pinned application icons only; skip Finder here because it is
-    -- explicitly inserted at position 1 above.
-    if bundleID and bundleID ~= "" and not seen[bundleID] then
-      seen[bundleID] = true
-      table.insert(apps, {
-        id = bundleID,
-        name = (label and label ~= "" and label) or bundleID
-      })
+  for line in file:lines() do
+    line = trim(line)
+    if line ~= "" and not line:match("^[;#]") then
+      local newSection = line:match("^%[(.-)%]$")
+      if newSection then
+        section = newSection
+        config[section] = {}
+      elseif section then
+        local key, value = line:match("^([%w_]+)%s*=%s*(.-)%s*$")
+        if key then
+          config[section][key] = value
+        end
+      end
     end
   end
 
-  return apps
+  file:close()
+  return config
 end
 
--- Cache the parsed Dock mapping so the plutil shell exec doesn't run on every
--- Alt+number press. The pathwatcher below invalidates the cache whenever the
--- Dock plist changes (e.g. you reorder pinned apps), so reordering still
--- propagates automatically.
-local function getDockApps()
-  if not dockAppsCache then
-    dockAppsCache = readDockApps()
-  end
-  return dockAppsCache
-end
+appConfig = readAppConfig()
 
-hs.pathwatcher
-  .new(os.getenv("HOME") .. "/Library/Preferences/com.apple.dock.plist", function()
-    dockAppsCache = nil
-  end)
-  :start()
+local function activateConfiguredApp(position)
+  local target = appConfig[position]
+  local bundleID = target and target.macos
 
-local function showDockMapping()
-  local apps = getDockApps()
-  local lines = { "Dock app shortcuts" }
-
-  for i, app in ipairs(apps) do
-    local assignment
-    if i <= 9 then
-      assignment = "⌥" .. tostring(i)
-    elseif i == 10 then
-      assignment = "⌥0"
-    else
-      assignment = "—"
-    end
-    table.insert(lines, string.format("%-5s %s", assignment, app.name))
-  end
-
-  if #apps == 0 then
-    table.insert(lines, "No pinned Dock apps found")
-  elseif #apps > 10 then
-    table.insert(lines, "Only the first 10 apps have shortcuts")
-  end
-
-  hs.alert.closeAll()
-  hs.alert.show(table.concat(lines, "\n"), 5)
-end
-
-local function chooseAppWindow(app, appName)
-  local windows = {}
-  for _, win in ipairs(app:allWindows()) do
-    if win:isStandard() then
-      table.insert(windows, win)
-    end
-  end
-
-  if #windows == 0 then
-    app:activate()
-    hs.alert.show(appName, 0.8)
+  if not bundleID or bundleID == "" or bundleID == "-" then
     return
   end
 
-  if #windows == 1 then
-    app:activate()
-    windows[1]:focus()
-    hs.alert.show(appName, 0.8)
+  local appName = target.name or bundleID
+  local app = hs.application.get(bundleID)
+
+  if app and app:isFrontmost() then
+    if bundleID == "com.apple.finder" and #app:allWindows() == 0 then
+      hs.osascript.applescript([[
+        tell application "Finder"
+          make new Finder window
+          activate
+        end tell
+      ]])
+    end
     return
   end
-
-  local choices = {}
-  for _, win in ipairs(windows) do
-    local title = win:title()
-    if not title or title == "" then
-      title = "Untitled window"
-    end
-    table.insert(choices, {
-      text = title,
-      subText = appName,
-      uuid = tostring(win:id())
-    })
-  end
-
-  local chooser = hs.chooser.new(function(choice)
-    if not choice then return end
-    local win = hs.window.get(tonumber(choice.uuid))
-    if win then
-      local owner = win:application()
-      if owner then owner:activate() end
-      win:focus()
-    end
-  end)
-
-  chooser:choices(choices)
-  chooser:rows(math.min(10, #choices))
-  chooser:show()
-end
-
-
-local function activateDockApp(position, showSelector)
-  local apps = getDockApps()
-  local target = apps[position]
-
-  if not target then
-    hs.alert.show("No app at Dock position " .. position)
-    return
-  end
-
-  local app = hs.application.get(target.id)
 
   if not app then
-    hs.application.launchOrFocusByBundleID(target.id)
-
-    -- Finder may launch without opening a window.
-    if target.name == "Finder" then
-      hs.timer.doAfter(0.3, function()
-        local finder = hs.application.get(target.id)
-        if finder and #finder:allWindows() == 0 then
-          hs.osascript.applescript([[
-            tell application "Finder"
-              make new Finder window
-              activate
-            end tell
-          ]])
-        end
-      end)
+    hs.application.launchOrFocusByBundleID(bundleID)
+  else
+    app:activate()
+    local mainWindow = app:mainWindow()
+    if mainWindow then
+      mainWindow:focus()
     end
-
-    hs.alert.show(target.name, 0.8)
-    return
   end
 
-  app:activate()
-
-  if target.name == "Finder" then
-    hs.timer.doAfter(0.15, function()
-      local finder = hs.application.get(target.id)
+  -- Finder can be running without a window. Selecting it should still produce
+  -- a useful foreground Finder window rather than appearing to do nothing.
+  if bundleID == "com.apple.finder" then
+    hs.timer.doAfter(0.2, function()
+      local finder = hs.application.get(bundleID)
       if finder and #finder:allWindows() == 0 then
         hs.osascript.applescript([[
           tell application "Finder"
@@ -257,49 +155,46 @@ local function activateDockApp(position, showSelector)
           end tell
         ]])
       end
-
-      if showSelector then
-        local activeApp = hs.application.get(target.id)
-        if activeApp then
-          chooseAppWindow(activeApp, target.name)
-        end
-      end
     end)
-  elseif showSelector then
-    -- Let macOS activate the app before collecting its windows.
-    hs.timer.doAfter(0.15, function()
-      local activeApp = hs.application.get(target.id)
-      if activeApp then
-        chooseAppWindow(activeApp, target.name)
-      end
-    end)
-  else
-    hs.alert.show(target.name, 0.8)
   end
+
+  hs.alert.show(appName, 0.6)
 end
 
--- Option + number activates the app assigned to that Dock position.
--- It never hides the app.
 for i = 1, 9 do
-  hs.hotkey.bind({ "alt" }, tostring(i), function()
-    activateDockApp(i, false)
+  local position = tostring(i)
+  hs.hotkey.bind({ "alt" }, position, function()
+    activateConfiguredApp(position)
   end)
 end
 
 hs.hotkey.bind({ "alt" }, "0", function()
-  activateDockApp(10, false)
+  activateConfiguredApp("0")
 end)
 
--- Option + Shift + number opens the window selector for that Dock app.
-for i = 1, 9 do
-  hs.hotkey.bind({ "alt", "shift" }, tostring(i), function()
-    activateDockApp(i, true)
-  end)
+local function showAppMapping()
+  local lines = { "Application shortcuts" }
+  local positions = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" }
+
+  for _, position in ipairs(positions) do
+    local target = appConfig[position] or {}
+    local name = target.name or "Unassigned"
+    local app = target.macos
+    if not app or app == "-" or app == "" then
+      name = name .. " (empty)"
+    end
+    table.insert(lines, string.format("⌥%-2s %s", position, name))
+  end
+
+  hs.alert.closeAll()
+  hs.alert.show(table.concat(lines, "\n"), 5)
 end
 
-hs.hotkey.bind({ "alt", "shift" }, "0", function()
-  activateDockApp(10, true)
-end)
+hs.pathwatcher
+  .new(appConfigPath, function()
+    hs.reload()
+  end)
+  :start()
 
 --------------------------------------------------
 -- Chrome bookmarks chooser
@@ -601,9 +496,8 @@ end)
 -- Show Hotkeys
 --------------------------------------------------
 local hotkeys = {
-    {"Alt+1..9 / 0", "Activate Dock app by position"},
-    {"Alt+Shift+1..9 / 0", "Choose a window for Dock app"},
-    {"Alt+grave / §", "Show Dock app assignments"},
+    {"Alt+1..9 / 0", "Activate configured application"},
+    {"Alt+grave / §", "Show application assignments"},
     {"Hyper+S", "Sesh / tmux Create New Session"},
     {"Hyper+Space", "Sesh / tmux"},
     {"Hyper+W g", "Google"},
@@ -676,8 +570,8 @@ hs.hotkey.bind({ "cmd" }, "h", showHotkeys)
 -- Option + § / `: bind both layout variants directly. A plain hotkey bind only
 -- fires on this exact combo, unlike a global keyDown eventtap which would run a
 -- Lua callback on every keystroke typed system-wide.
-hs.hotkey.bind({ "alt" }, "§", showDockMapping)
-hs.hotkey.bind({ "alt" }, "`", showDockMapping)
+hs.hotkey.bind({ "alt" }, "§", showAppMapping)
+hs.hotkey.bind({ "alt" }, "`", showAppMapping)
 
 --------------------------------------------------
 -- Reload Hammerspoon
