@@ -9,6 +9,7 @@
 global AppConfigPath := A_ScriptDir "\apps.ini"
 
 ActivateConfiguredApp(position) {
+    global AppConfigPath
     configPath := AppConfigPath
     appName := IniRead(configPath, position, "name", position)
     executable := Trim(IniRead(configPath, position, "windows", "-"))
