@@ -164,7 +164,6 @@ local function activateConfiguredApp(position)
     end)
   end
 
-  hs.alert.show(appName, 0.6)
 end
 
 for i = 1, 9 do
