@@ -1,5 +1,6 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force
+#UseHook  ; Force the keyboard hook so Win+number overrides taskbar shortcuts.
 
 ; Win+1..9 and Win+0 select the corresponding configured application.
 ; This intentionally replaces Windows' native Win+number taskbar behaviour:
