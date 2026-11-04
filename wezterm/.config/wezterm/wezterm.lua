@@ -38,29 +38,8 @@ config.window_decorations = 'RESIZE'
 -- Keybindings --------------------------------------------------------------
 
 config.keys = {
-  {key="Enter", mods="SHIFT", action=wezterm.action{SendString="\\x1b\\n"}},
+  {key="Enter", mods="SHIFT", action=wezterm.action{SendString="\x1b\n"}},
 }
-
--- Windows shell switcher ---------------------------------------------------
-
-if is_windows then
-  config.launch_menu = {
-    {
-      label = 'Ubuntu (WSL)',
-      domain = { DomainName = 'WSL:Ubuntu' },
-    },
-    {
-      label = 'PowerShell',
-      args = { 'powershell.exe', '-NoLogo' },
-    },
-  }
-
-  table.insert(config.keys, {
-    key = 's',
-    mods = 'CTRL|SHIFT',
-    action = act.ShowLauncher,
-  })
-end
 
 -- Clipboard ----------------------------------------------------------------
 
