@@ -6,7 +6,7 @@
 ; This intentionally replaces Windows' native Win+number taskbar behaviour:
 ; it activates one application without minimising or cycling its windows.
 
-global AppConfigPath := A_ScriptDir "\\apps.ini"
+global AppConfigPath := A_ScriptDir "\apps.ini"
 
 ActivateConfiguredApp(position) {
     configPath := AppConfigPath
