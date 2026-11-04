@@ -121,6 +121,14 @@ local function activateConfiguredApp(position)
   local app = hs.application.get(bundleID)
 
   if app and app:isFrontmost() then
+    if bundleID == "com.apple.finder" and #app:allWindows() == 0 then
+      hs.osascript.applescript([[
+        tell application "Finder"
+          make new Finder window
+          activate
+        end tell
+      ]])
+    end
     return
   end
 
