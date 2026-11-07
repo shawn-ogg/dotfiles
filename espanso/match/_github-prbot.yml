@@ -1,0 +1,47 @@
+# GitHub PR Bot commands.
+# Available in Chrome via the Espanso Search Bar (type ;prbot).
+matches:
+  - trigger: "/ask"
+    replace: "/ask"
+    label: "PRBot: Ask a question"
+    search_terms: [prbot, question, ask]
+
+  - trigger: "/delete-pr-bot-comments"
+    replace: "/delete-pr-bot-comments"
+    label: "PRBot: Delete all bot comments and reviews"
+    search_terms: [prbot, delete, comments]
+
+  - trigger: "/delete-pr-bot-reviews"
+    replace: "/delete-pr-bot-reviews"
+    label: "PRBot: Delete bot reviews"
+    search_terms: [prbot, delete, reviews]
+
+  - trigger: "/help"
+    replace: "/help"
+    label: "PRBot: Show help"
+    search_terms: [prbot, help, commands]
+
+  - trigger: "/review+"
+    replace: "/review+"
+    label: "PRBot: Two-phase review"
+    search_terms: [prbot, review, thorough]
+
+  - trigger: "/review+ --all"
+    replace: "/review+ --all"
+    label: "PRBot: Two-phase review (all files)"
+    search_terms: [prbot, review, all]
+
+  - trigger: "/review"
+    replace: "/review"
+    label: "PRBot: Standard review"
+    search_terms: [prbot, review, standard]
+
+  - trigger: "/review --all"
+    replace: "/review --all"
+    label: "PRBot: Standard review (all files)"
+    search_terms: [prbot, review, all]
+
+  - trigger: "/summarize"
+    replace: "/summarize"
+    label: "PRBot: Summarize pull request"
+    search_terms: [prbot, summary, summarize]
