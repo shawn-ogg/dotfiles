@@ -1,0 +1,5 @@
+# Enable GitHub PR Bot snippets only in Google Chrome on Windows.
+filter_os: windows
+filter_exec: "chrome.exe"
+extra_includes:
+  - "../match/_github-prbot.yml"
