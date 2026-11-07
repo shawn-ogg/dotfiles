@@ -1,0 +1,3 @@
+# Espanso global configuration.
+# Opens the searchable match picker when typing ;prbot.
+search_trigger: ";prbot"
