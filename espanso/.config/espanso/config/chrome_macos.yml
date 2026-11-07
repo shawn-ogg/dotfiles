@@ -1,5 +1,0 @@
-# Enable GitHub PR Bot snippets only in Google Chrome on macOS.
-filter_os: macos
-filter_class: "com.google.Chrome"
-extra_includes:
-  - "../match/_github-prbot.yml"
