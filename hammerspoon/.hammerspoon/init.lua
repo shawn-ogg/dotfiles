@@ -249,13 +249,18 @@ local function activateDockApp(position, showSelector)
   if target.name == "Finder" then
     hs.timer.doAfter(0.15, function()
       local finder = hs.application.get(target.id)
-      if finder and #finder:allWindows() == 0 then
+      if not finder then return end
+      if #finder:allWindows() == 0 then
         hs.osascript.applescript([[
           tell application "Finder"
             make new Finder window
             activate
           end tell
         ]])
+      else
+        -- Raise the frontmost Finder window explicitly.
+        local win = finder:mainWindow() or finder:allWindows()[1]
+        if win then win:focus() end
       end
 
       if showSelector then
@@ -263,6 +268,8 @@ local function activateDockApp(position, showSelector)
         if activeApp then
           chooseAppWindow(activeApp, target.name)
         end
+      else
+        hs.alert.show(target.name, 0.8)
       end
     end)
   elseif showSelector then
