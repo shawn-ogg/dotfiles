@@ -28,10 +28,12 @@ return {
           "markdown",
         },
         callback = function(args)
-          vim.treesitter.start(args.buf)
+          -- Parser installation is asynchronous, so a parser may not be
+          -- available yet on the first startup after this migration.
+          pcall(vim.treesitter.start, args.buf)
 
-          -- Keep legacy regex syntax highlighting alongside Tree-sitter for
-          -- shell scripts, matching the previous additional_vim_regex_highlighting setting.
+          -- Preserve regex syntax highlighting alongside Tree-sitter for
+          -- shell scripts, matching the old additional_vim_regex_highlighting setting.
           if vim.bo[args.buf].filetype == "sh" or vim.bo[args.buf].filetype == "bash" then
             vim.bo[args.buf].syntax = "ON"
           end
